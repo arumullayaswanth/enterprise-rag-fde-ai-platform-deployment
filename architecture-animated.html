@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Animated end-to-end architecture of the Bedrock + OpenSearch RAG stack: the eight components that carry a document in and an answer out.">
+<title>RAG on AWS · animated architecture</title>
+<style>
+  :root {
+    --bg-0: #070b14;
+    --surface: #111827e6;
+    --surface-2: #151d2e;
+    --border: rgba(122,143,184,.22);
+    --border-strong: rgba(122,143,184,.42);
+    --text: #e9edf6;
+    --dim: #9aa8c4;
+    --faint: #6c7a96;
+    --brand: #ff7a1a;
+    --brand-2: #ffb347;
+    --cyan: #38bdf8;
+    --violet: #a78bfa;
+    --green: #34d399;
+    --mono: "JetBrains Mono","Cascadia Code",ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  *,*::before,*::after { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background:
+      radial-gradient(1200px 600px at 12% -10%, rgba(255,122,26,.13), transparent 60%),
+      radial-gradient(1000px 700px at 100% 20%, rgba(56,189,248,.12), transparent 60%),
+      var(--bg-0);
+    color: var(--text);
+    font: 15px/1.6 "Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  header { padding: 22px 26px 8px; }
+  h1 { margin: 0; font-size: 20px; letter-spacing: .2px; }
+  h1 span { color: var(--brand); }
+  header p { margin: 4px 0 0; color: var(--dim); font-size: 13px; max-width: 92ch; }
+
+  .wrap {
+    display: grid;
+    grid-template-columns: minmax(0,1fr) 400px;
+    gap: 18px;
+    padding: 12px 26px 30px;
+    align-items: start;
+  }
+  @media (max-width: 1150px) { .wrap { grid-template-columns: minmax(0,1fr); } }
+
+  .stage {
+    background: linear-gradient(180deg, #0a1020, #080d19);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 8px;
+    box-shadow: 0 24px 60px rgba(0,0,0,.5);
+    overflow: hidden;
+  }
+  svg.diagram { width: 100%; height: auto; display: block; }
+
+  /* ---------------------------------------------------------- diagram skin */
+  .grp rect { fill: rgba(148,175,226,.035); stroke: var(--border); stroke-dasharray: 5 5; }
+  .grp.region rect { fill: rgba(148,175,226,.03); stroke: rgba(122,143,184,.3); stroke-dasharray: none; }
+  .grp.vpc rect { fill: rgba(56,189,248,.045); stroke: rgba(56,189,248,.3); }
+  .grp.bedrock rect { fill: rgba(167,139,250,.06); stroke: rgba(167,139,250,.33); }
+  .grp text { fill: var(--faint); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; }
+
+  .link { fill: none; stroke: rgba(122,143,184,.34); stroke-width: 1.8; }
+  .link.lit { stroke: var(--accentC, var(--cyan)); stroke-width: 2.8; opacity: .45; }
+
+  .trace { fill: none; stroke: var(--accentC, var(--cyan)); stroke-width: 3.4; stroke-linecap: round;
+           filter: drop-shadow(0 0 8px var(--accentC, var(--cyan))); }
+
+  .nbox { fill: var(--surface-2); stroke: var(--border-strong); stroke-width: 1.3; }
+  .ntitle { fill: var(--text); font-size: 15px; font-weight: 650; }
+  .nsub { fill: var(--dim); font-size: 11px; font-family: var(--mono); }
+  .ico text { font-size: 10px; font-weight: 800; font-family: var(--mono); fill: #07101e; }
+
+  .node { opacity: .6; transition: opacity .25s ease; cursor: pointer; }
+  .node.on { opacity: 1; }
+  .node.on .nbox { stroke: var(--accentC, var(--cyan)); stroke-width: 2; filter: drop-shadow(0 0 16px rgba(56,189,248,.45)); }
+  .node.on .pulse { opacity: 1; animation: ring 1.6s ease-out infinite; }
+  .pulse { fill: none; stroke: var(--accentC, var(--cyan)); stroke-width: 1.4; opacity: 0;
+           transform-box: fill-box; transform-origin: center; }
+  @keyframes ring { 0% { transform: scale(.98); opacity: .8; } 100% { transform: scale(1.07); opacity: 0; } }
+
+  .chip rect { fill: #0c1424f2; stroke: var(--accentC, var(--cyan)); }
+  .chip text { fill: var(--text); font-size: 12px; font-family: var(--mono); }
+
+  /* --------------------------------------------------------------- controls */
+  .bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 10px 6px 4px; }
+  button {
+    background: var(--surface-2); color: var(--text); border: 1px solid var(--border-strong);
+    border-radius: 9px; padding: 7px 12px; font: inherit; font-size: 13px; cursor: pointer;
+  }
+  button:hover { border-color: var(--brand); color: var(--brand-2); }
+  button:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+  button.primary { background: linear-gradient(180deg, var(--brand), #e2650c); border-color: transparent; color: #140a02; font-weight: 700; }
+  .seg { display: inline-flex; border: 1px solid var(--border-strong); border-radius: 9px; overflow: hidden; }
+  .seg button { border: 0; border-radius: 0; background: transparent; }
+  .seg button[aria-pressed="true"] { background: rgba(255,122,26,.16); color: var(--brand-2); }
+  .spacer { flex: 1; }
+  .count { color: var(--faint); font-family: var(--mono); font-size: 12px; }
+
+  /* ----------------------------------------------------------------- panel */
+  .panel { display: grid; gap: 12px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 16px; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px; font-size: 11px; letter-spacing: .1em;
+    text-transform: uppercase; font-weight: 700; padding: 3px 9px; border-radius: 999px;
+  }
+  .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .p-ingest { color: var(--green); background: rgba(52,211,153,.12); }
+  .p-ingest .dot { background: var(--green); }
+  .p-query { color: var(--violet); background: rgba(167,139,250,.14); }
+  .p-query .dot { background: var(--violet); }
+  .now h2 { margin: 10px 0 6px; font-size: 17px; line-height: 1.35; }
+  .now p { margin: 0; color: var(--dim); font-size: 13.5px; }
+  .ref { display: block; margin-top: 10px; color: var(--faint); font-family: var(--mono); font-size: 11.5px; word-break: break-all; }
+  .track { height: 4px; border-radius: 999px; background: rgba(122,143,184,.2); overflow: hidden; margin-top: 12px; }
+  .track i { display: block; height: 100%; background: linear-gradient(90deg, var(--green), var(--violet)); width: 0; }
+
+  ol.steps { list-style: none; margin: 0; padding: 0; }
+  ol.steps li { margin: 0 0 2px; }
+  ol.steps button {
+    width: 100%; text-align: left; display: flex; gap: 9px; align-items: baseline;
+    background: transparent; border: 1px solid transparent; border-radius: 9px; padding: 6px 8px;
+    font-size: 12.5px; color: var(--dim);
+  }
+  ol.steps button:hover { background: rgba(122,143,184,.1); color: var(--text); }
+  ol.steps li[aria-current="true"] button { background: rgba(56,189,248,.12); border-color: rgba(56,189,248,.4); color: var(--text); font-weight: 600; }
+  ol.steps .n { font-family: var(--mono); font-size: 10.5px; color: var(--faint); min-width: 18px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; color: var(--faint); font-size: 12px; padding: 2px 6px 0; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .sw { width: 12px; height: 12px; border-radius: 4px; }
+  footer { padding: 0 26px 34px; color: var(--faint); font-size: 12px; }
+
+  @media (prefers-reduced-motion: reduce) { .node.on .pulse { animation: none; opacity: .5; } }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>RAG on AWS · <span>animated architecture</span></h1>
+  <p>The eight components that carry a document in and an answer out. Ingestion fills the index; a query reuses the same embedding model to search it and a second model to write the answer. Read off <code>app/</code> and <code>terraform/</code>.</p>
+</header>
+
+<div class="wrap">
+  <div>
+    <div class="stage">
+      <svg class="diagram" id="svg" viewBox="0 0 1520 700" role="img"
+           aria-label="Architecture diagram: a browser outside AWS calls an Application Load Balancer, which forwards to the FastAPI service on ECS Fargate in a private subnet. Documents land in S3 and trigger an ingest Lambda. Both the Lambda and the API call Amazon Bedrock Titan embeddings and store or search vectors in OpenSearch; the API then calls Bedrock Nova Lite to generate the answer.">
+        <defs>
+          <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M40 0H0V40" fill="none" stroke="rgba(122,143,184,.07)" stroke-width="1"/>
+          </pattern>
+        </defs>
+        <rect width="1520" height="700" fill="url(#grid)"/>
+        <g id="layer-groups"></g>
+        <g id="layer-links"></g>
+        <g id="layer-nodes"></g>
+        <g id="layer-fx">
+          <path id="trace" class="trace" d=""/>
+          <g id="packet"></g>
+          <g id="chip" class="chip" style="display:none">
+            <rect rx="7" height="24"/>
+            <text dy="16"></text>
+          </g>
+        </g>
+      </svg>
+    </div>
+
+    <div class="bar">
+      <button class="primary" id="btn-play" aria-label="Play or pause the walkthrough">⏸ Pause</button>
+      <button id="btn-prev" aria-label="Previous step">← Prev</button>
+      <button id="btn-next" aria-label="Next step">Next →</button>
+      <button id="btn-restart" aria-label="Restart from the first step">↺ Restart</button>
+      <div class="seg" role="group" aria-label="Filter phases">
+        <button data-phase="all" aria-pressed="true">All</button>
+        <button data-phase="ingest" aria-pressed="false">Ingest</button>
+        <button data-phase="query" aria-pressed="false">Query</button>
+      </div>
+      <div class="seg" role="group" aria-label="Speed">
+        <button data-speed="0.5" aria-pressed="false">0.5×</button>
+        <button data-speed="1" aria-pressed="true">1×</button>
+        <button data-speed="2" aria-pressed="false">2×</button>
+      </div>
+      <span class="spacer"></span>
+      <span class="count" id="count"></span>
+    </div>
+
+    <div class="legend">
+      <span><i class="sw" style="background:#34d399"></i> ingestion path</span>
+      <span><i class="sw" style="background:#a78bfa"></i> query path</span>
+      <span>dashed box = network boundary</span>
+      <span>click any component to jump to it</span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="card now" aria-live="polite">
+      <span class="badge p-ingest" id="phase"><i class="dot"></i><span>ingest</span></span>
+      <h2 id="title">—</h2>
+      <p id="detail"></p>
+      <code class="ref" id="ref"></code>
+      <div class="track"><i id="bar"></i></div>
+    </div>
+    <div class="card">
+      <ol class="steps" id="list"></ol>
+    </div>
+  </div>
+</div>
+
+<footer>Keyboard: ← → step, space play/pause. Only the active hop is lit; everything else stays dim on purpose.</footer>
+
+<script>
+(() => {
+  "use strict";
+
+  const PHASE = {
+    ingest: { color: "#34d399", label: "ingest" },
+    query:  { color: "#a78bfa", label: "query"  }
+  };
+
+  // --------------------------------------------------------------- geometry
+  const GROUPS = [
+    { cls: "region",  x: 270,  y: 40, w: 1230, h: 620, label: "AWS cloud · us-east-1" },
+    { cls: "vpc",     x: 560,  y: 70, w: 610,  h: 570, label: "VPC · private subnets" },
+    { cls: "bedrock", x: 1210, y: 70, w: 280,  h: 560, label: "amazon bedrock" }
+  ];
+
+  const NODES = [
+    { id:"user", x:30,   y:470, w:200, h:80, ico:"UI",  c:"#a78bfa", title:"Browser / client",  sub:["POST /query + x-api-key"] },
+    { id:"s3",   x:310,  y:100, w:210, h:96, ico:"S3",  c:"#34d399", title:"S3 · documents",    sub:["uploads/ prefix",        "md · txt · pdf"] },
+    { id:"lam",  x:590,  y:100, w:210, h:96, ico:"λ",   c:"#34d399", title:"Lambda · ingest",   sub:["load → chunk → embed",   "1000 chars / 150 overlap"] },
+    { id:"api",  x:590,  y:280, w:210, h:96, ico:"ECS", c:"#a78bfa", title:"ECS Fargate · API", sub:["FastAPI /query /ingest", "retrieve → prompt → answer"] },
+    { id:"alb",  x:590,  y:480, w:210, h:80, ico:"ALB", c:"#38bdf8", title:"ALB :80",           sub:["health check /health"] },
+    { id:"os",   x:920,  y:420, w:220, h:96, ico:"OS",  c:"#38bdf8", title:"OpenSearch",        sub:["index rag-chunks",       "knn_vector 1024 + text"] },
+    { id:"bemb", x:1235, y:120, w:230, h:96, ico:"EMB", c:"#a78bfa", title:"Titan Embed v2",    sub:["titan-embed-text-v2:0",  "1024 dims · normalized"] },
+    { id:"bllm", x:1235, y:450, w:230, h:96, ico:"LLM", c:"#a78bfa", title:"Nova Lite",         sub:["amazon.nova-lite-v1:0",  "Converse · temperature 0"] }
+  ];
+
+  const N = Object.fromEntries(NODES.map(n => [n.id, n]));
+
+  const LINKS = [
+    { id:"s3_lam",   from:["s3","right"],       to:["lam","left"] },
+    { id:"lam_bemb", from:["lam","right",.4],   to:["bemb","left",.75] },
+    { id:"lam_os",   from:["lam","right",.85],  to:["os","left",.3],     via:[[880,300]] },
+    { id:"user_alb", from:["user","right"],     to:["alb","left",.5],    via:[[400,520]] },
+    { id:"alb_api",  from:["alb","top",.5],     to:["api","bottom",.5] },
+    { id:"api_bemb", from:["api","right",.35],  to:["bemb","left",.25] },
+    { id:"api_os",   from:["api","right",.7],   to:["os","left",.7],     via:[[870,400]] },
+    { id:"api_bllm", from:["api","right",.95],  to:["bllm","bottom",.5], via:[[880,615],[1180,605]] }
+  ];
+
+  const L = Object.fromEntries(LINKS.map(l => [l.id, l]));
+
+  // ------------------------------------------------------------------ script
+  const STEPS = [
+    { p:"ingest", link:"s3_lam", title:"A document lands in S3",
+      d:"Anything created under the uploads/ prefix fires an S3 event that invokes the ingest Lambda. The bucket is private, encrypted and versioned; the event is the only trigger needed.",
+      ref:"terraform/s3.tf · indexer.lambda_handler", chip:"ObjectCreated: uploads/*" },
+    { p:"ingest", link:"s3_lam", rev:true, title:"Read and parse",
+      d:"The Lambda reads the object back, skips anything that is not .txt, .md or .pdf, and turns the bytes into plain text.",
+      ref:"app/ingestion/loader.py", chip:"get_object → text" },
+    { p:"ingest", pulse:["lam"], title:"Split into chunks",
+      d:"Text is split on paragraphs, then sentences, then packed into 1000-character windows that carry 150 characters of the previous one so a fact is never cut in half. Each chunk id is doc_id::index, which makes re-ingesting the same file an update rather than a duplicate.",
+      ref:"app/ingestion/chunker.py", chip:"1000 chars · 150 overlap" },
+    { p:"ingest", link:"lam_bemb", title:"Embed every chunk",
+      d:"Each chunk goes to Bedrock's Titan embedding model. Titan takes one input at a time, so the Lambda loops in batches of 16 and backs off when it is throttled.",
+      ref:"app/ingestion/embeddings.py", chip:"invoke_model per chunk" },
+    { p:"ingest", link:"lam_bemb", rev:true, title:"A vector comes back",
+      d:"1024 normalized floats standing in for the meaning of the chunk. This number has to match the vector dimension in the index mapping, or indexing fails.",
+      ref:"EMBED_DIMENSION = 1024", chip:"[0.12, -0.34, …]" },
+    { p:"ingest", link:"lam_os", title:"Store text and vector together",
+      d:"The index is created on first use as a knn_vector field with hnsw and cosine similarity, then chunks are bulk-written with the text, the vector and the source. The text is stored too, because that is what the model will eventually read.",
+      ref:"app/ingestion/indexer.py", chip:"bulk index: text + vector" },
+
+    { p:"query", link:"user_alb", title:"The question arrives",
+      d:"POST /query with the question, how many passages to retrieve, and an x-api-key header. The load balancer is the only public entry point.",
+      ref:"app/api/main.py", chip:"POST /query" },
+    { p:"query", link:"alb_api", title:"Load balancer to a healthy task",
+      d:"The ALB forwards to a Fargate task in a private subnet that has passed /health. The task has no public IP; only the load balancer can reach it.",
+      ref:"terraform/alb.tf · ecs.tf", chip:"/health 200 → forward" },
+    { p:"query", pulse:["api","alb"], title:"Check the caller",
+      d:"The API key is compared in constant time against a value injected at start-up, so a wrong key is a 401 before anything is spent. That is separate from how the service authenticates to AWS, which is its task role.",
+      ref:"main.py:require_api_key", chip:"valid key or 401" },
+    { p:"query", link:"api_bemb", title:"Embed the question",
+      d:"Same model, same dimension as ingestion. That is the whole trick: the question and the chunks end up in the same vector space, so closeness means similar meaning.",
+      ref:"retrieval/search.py:vector_search", chip:"question → query vector" },
+    { p:"query", link:"api_os", title:"Search two ways at once",
+      d:"A vector search for meaning and a keyword search for exact terms, each asking for twice as many hits as needed. Vectors find 'where can I store files' in a page about object storage; keywords catch an exact fee name or code.",
+      ref:"search.py:hybrid_search", chip:"knn + keyword" },
+    { p:"query", link:"api_os", rev:true, title:"Merge and keep the top K",
+      d:"The two ranked lists are fused by rank rather than by score, which avoids comparing a cosine number with a keyword number. What comes back is the original chunk text, not just an id.",
+      ref:"search.py:reciprocal_rank_fusion", chip:"top-K chunks + text" },
+    { p:"query", pulse:["api"], title:"Build the prompt",
+      d:"Passages are numbered [1], [2]… with a readable title, capped at 12000 characters, and the question is placed last so it sits closest to where the model starts writing.",
+      ref:"retrieval/rag.py:build_context", chip:"context + question" },
+    { p:"query", link:"api_bllm", title:"Generate the answer",
+      d:"One call to the chat model with a system prompt that says: answer only from these passages, cite each claim, say so when something is missing. Temperature 0 so the same question gives the same answer.",
+      ref:"rag.py:generate", chip:"converse(context, question)" },
+    { p:"query", link:"api_bllm", rev:true, title:"Grounded answer",
+      d:"Prose with inline [1][2] markers tied back to the passages. If retrieval found nothing, the model is never called: the API says it found nothing instead of letting it improvise.",
+      ref:"rag.py:answer_question", chip:"answer + citations" },
+    { p:"query", link:"alb_api", rev:true, title:"Back out through the ALB",
+      d:"The response carries the answer, the citation list with titles and scores, and the model id that produced it.",
+      ref:"main.py:QueryResponse", chip:"JSON response" },
+    { p:"query", link:"user_alb", rev:true, title:"…and it renders",
+      d:"The console shows the answer with its citation chips. Ingestion has put the knowledge in place; retrieval decided what was relevant; the model only phrased it.",
+      ref:"app/api/static/index.html", chip:"answer on screen" }
+  ];
+
+  // ---------------------------------------------------------------- plumbing
+  const SVGNS = "http://www.w3.org/2000/svg";
+  const el = (tag, attrs = {}, parent) => {
+    const e = document.createElementNS(SVGNS, tag);
+    for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+    if (parent) parent.appendChild(e);
+    return e;
+  };
+
+  function anchor(node, side, t = 0.5) {
+    const { x, y, w, h } = node;
+    switch (side) {
+      case "left":   return { x: x,         y: y + h * t, nx: -1, ny: 0 };
+      case "right":  return { x: x + w,     y: y + h * t, nx:  1, ny: 0 };
+      case "top":    return { x: x + w * t, y: y,         nx:  0, ny: -1 };
+      default:       return { x: x + w * t, y: y + h,     nx:  0, ny: 1 };
+    }
+  }
+
+  // Catmull-Rom through the control polyline, so departure/arrival directions hold.
+  function smooth(p) {
+    let d = `M ${p[0][0]},${p[0][1]}`;
+    for (let i = 0; i < p.length - 1; i++) {
+      const p0 = p[i - 1] || p[i], p1 = p[i], p2 = p[i + 1], p3 = p[i + 2] || p[i + 1];
+      const c1 = [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6];
+      const c2 = [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6];
+      d += ` C ${c1[0]},${c1[1]} ${c2[0]},${c2[1]} ${p2[0]},${p2[1]}`;
+    }
+    return d;
+  }
+
+  function linkPath(link) {
+    const a = anchor(N[link.from[0]], link.from[1], link.from[2]);
+    const b = anchor(N[link.to[0]],   link.to[1],   link.to[2]);
+    const span = Math.hypot(b.x - a.x, b.y - a.y);
+    const off = Math.max(14, Math.min(48, span * 0.28));
+    const pts = [[a.x, a.y], [a.x + a.nx * off, a.y + a.ny * off]];
+    (link.via || []).forEach(v => pts.push(v));
+    pts.push([b.x + b.nx * off, b.y + b.ny * off], [b.x, b.y]);
+    return smooth(pts);
+  }
+
+  // ----------------------------------------------------------------- render
+  const gGroups = document.getElementById("layer-groups");
+  const gLinks  = document.getElementById("layer-links");
+  const gNodes  = document.getElementById("layer-nodes");
+  const trace   = document.getElementById("trace");
+  const packet  = document.getElementById("packet");
+  const chip    = document.getElementById("chip");
+  const chipBox = chip.querySelector("rect");
+  const chipTxt = chip.querySelector("text");
+
+  GROUPS.forEach(g => {
+    const wrap = el("g", { class: `grp ${g.cls}` }, gGroups);
+    el("rect", { x: g.x, y: g.y, width: g.w, height: g.h, rx: 18 }, wrap);
+    el("text", { x: g.x + 18, y: g.y + 24 }, wrap).textContent = g.label;
+  });
+
+  const linkEls = {};
+  LINKS.forEach(l => { linkEls[l.id] = el("path", { class: "link", d: linkPath(l) }, gLinks); });
+
+  const nodeEls = {};
+  NODES.forEach(n => {
+    const g = el("g", { class: "node", "data-id": n.id }, gNodes);
+    g.style.setProperty("--accentC", n.c);
+    el("rect", { class: "pulse", x: n.x - 7, y: n.y - 7, width: n.w + 14, height: n.h + 14, rx: 19 }, g);
+    el("rect", { class: "nbox", x: n.x, y: n.y, width: n.w, height: n.h, rx: 14 }, g);
+    const ico = el("g", { class: "ico" }, g);
+    el("rect", { x: n.x + 16, y: n.y + 16, width: 30, height: 23, rx: 6, fill: n.c }, ico);
+    el("text", { x: n.x + 31, y: n.y + 32, "text-anchor": "middle" }, ico).textContent = n.ico;
+    el("text", { class: "ntitle", x: n.x + 54, y: n.y + 34 }, g).textContent = n.title;
+    n.sub.forEach((s, i) => el("text", { class: "nsub", x: n.x + 18, y: n.y + 60 + i * 15 }, g).textContent = s);
+    nodeEls[n.id] = g;
+  });
+
+  const TRAIL = 5;
+  const trailEls = [];
+  for (let i = TRAIL - 1; i >= 0; i--) {
+    trailEls.push(el("circle", { r: 4.5 + i * 1.7, opacity: 0.1 + 0.12 * (TRAIL - i), fill: "#fff" }, packet));
+  }
+  const core = el("circle", { r: 7, fill: "#fff" }, packet);
+  const halo = el("circle", { r: 16, fill: "none", "stroke-width": 2 }, packet);
+
+  // ------------------------------------------------------------------ panel
+  const list    = document.getElementById("list");
+  const elPhase = document.getElementById("phase");
+  const elTitle = document.getElementById("title");
+  const elDet   = document.getElementById("detail");
+  const elRef   = document.getElementById("ref");
+  const elBar   = document.getElementById("bar");
+  const elCount = document.getElementById("count");
+  const btnPlay = document.getElementById("btn-play");
+
+  STEPS.forEach((s, i) => {
+    const li = document.createElement("li");
+    const b = document.createElement("button");
+    b.innerHTML = `<span class="n">${String(i + 1).padStart(2, "0")}</span><span>${s.title}</span>`;
+    b.addEventListener("click", () => { goto(i); pause(); });
+    li.appendChild(b);
+    li.dataset.phase = s.p;
+    list.appendChild(li);
+  });
+  const liEls = [...list.children];
+
+  // ------------------------------------------------------------------ engine
+  const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let filter = "all";
+  let speed = 1;
+  let playing = !reduced;
+  let cur = 0;
+  let anim = null;
+  let holdUntil = 0;
+
+  const inFilter = i => filter === "all" || STEPS[i].p === filter;
+  const order = () => STEPS.map((_, i) => i).filter(inFilter);
+
+  function goto(i, { restartAnim = true } = {}) {
+    cur = i;
+    const s = STEPS[i];
+    const col = PHASE[s.p].color;
+
+    Object.values(nodeEls).forEach(g => g.classList.remove("on"));
+    Object.values(linkEls).forEach(p => p.classList.remove("lit"));
+    const touched = new Set(s.pulse || []);
+    if (s.link) { touched.add(L[s.link].from[0]); touched.add(L[s.link].to[0]); }
+    touched.forEach(id => nodeEls[id] && nodeEls[id].classList.add("on"));
+
+    elPhase.className = "badge p-" + s.p;
+    elPhase.lastElementChild.textContent = PHASE[s.p].label;
+    elTitle.textContent = s.title;
+    elDet.textContent = s.d;
+    elRef.textContent = s.ref;
+    liEls.forEach((li, k) => li.setAttribute("aria-current", k === i ? "true" : "false"));
+    const ord = order();
+    elCount.textContent = `step ${ord.indexOf(i) + 1} / ${ord.length}` + (filter === "all" ? "" : ` · ${filter}`);
+
+    trace.style.setProperty("--accentC", col);
+    core.setAttribute("fill", col);
+    halo.setAttribute("stroke", col);
+    trailEls.forEach(c => c.setAttribute("fill", col));
+    chip.style.setProperty("--accentC", col);
+
+    if (!restartAnim) return;
+
+    if (s.link) {
+      const path = linkEls[s.link];
+      path.classList.add("lit");
+      path.style.setProperty("--accentC", col);
+      const len = path.getTotalLength();
+      trace.setAttribute("d", path.getAttribute("d"));
+      trace.style.strokeDasharray = len;
+      anim = { path, len, rev: !!s.rev, dur: 1500 / speed, t0: performance.now() };
+      packet.style.display = "";
+      trace.style.display = "";
+      const mid = path.getPointAtLength(len * 0.5);
+      showChip(mid.x, mid.y - 22, s.chip);
+    } else {
+      anim = { path: null, dur: 1200 / speed, t0: performance.now() };
+      packet.style.display = "none";
+      trace.style.display = "none";
+      const n = N[(s.pulse || ["api"])[0]];
+      showChip(n.x + n.w / 2, n.y - 26, s.chip);
+    }
+    if (reduced && anim.path) paint(1);
+  }
+
+  function showChip(x, y, text) {
+    if (!text) { chip.style.display = "none"; return; }
+    chip.style.display = "";
+    chipTxt.textContent = text;
+    const w = chipTxt.getComputedTextLength() + 22;
+    chipBox.setAttribute("width", w);
+    chipTxt.setAttribute("x", 11);
+    chip.setAttribute("transform", `translate(${x - w / 2},${y - 12})`);
+  }
+
+  function paint(p) {
+    if (!anim || !anim.path) return;
+    const { path, len, rev } = anim;
+    const at = rev ? len * (1 - p) : len * p;
+    const pt = path.getPointAtLength(at);
+    core.setAttribute("cx", pt.x); core.setAttribute("cy", pt.y);
+    halo.setAttribute("cx", pt.x); halo.setAttribute("cy", pt.y);
+    halo.setAttribute("opacity", 0.35 * (1 - p) + 0.15);
+    trailEls.forEach((c, i) => {
+      const back = (i + 1) * len * 0.018;
+      const q = Math.max(0, Math.min(len, rev ? at + back : at - back));
+      const tp = path.getPointAtLength(q);
+      c.setAttribute("cx", tp.x); c.setAttribute("cy", tp.y);
+    });
+    trace.style.strokeDashoffset = (rev ? -1 : 1) * len * (1 - p);
+  }
+
+  function frame(ts) {
+    if (anim) {
+      const p = Math.min(1, (ts - anim.t0) / anim.dur);
+      const eased = p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
+      paint(eased);
+      const ord = order();
+      const done = ord.indexOf(cur) + 1;
+      elBar.style.width = ((done - 1 + p) / ord.length * 100) + "%";
+      if (p >= 1) {
+        if (!holdUntil) holdUntil = ts + 600 / speed;
+        if (playing && ts >= holdUntil) { holdUntil = 0; next(); }
+      }
+    }
+    requestAnimationFrame(frame);
+  }
+
+  function step(dir) {
+    const ord = order();
+    if (!ord.length) return;
+    let k = ord.indexOf(cur);
+    k = k === -1 ? 0 : (k + dir + ord.length) % ord.length;
+    holdUntil = 0;
+    goto(ord[k]);
+  }
+  const next = () => step(1);
+  const prev = () => step(-1);
+
+  function setPlaying(v) {
+    playing = v;
+    btnPlay.textContent = v ? "⏸ Pause" : "▶ Play";
+    if (v) holdUntil = 0;
+  }
+  const pause = () => setPlaying(false);
+
+  btnPlay.addEventListener("click", () => setPlaying(!playing));
+  document.getElementById("btn-next").addEventListener("click", () => { next(); pause(); });
+  document.getElementById("btn-prev").addEventListener("click", () => { prev(); pause(); });
+  document.getElementById("btn-restart").addEventListener("click", () => { goto(order()[0]); setPlaying(true); });
+
+  document.querySelectorAll("[data-phase]").forEach(b => {
+    b.addEventListener("click", () => {
+      filter = b.dataset.phase;
+      document.querySelectorAll("[data-phase]").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+      liEls.forEach(li => { li.hidden = !(filter === "all" || li.dataset.phase === filter); });
+      goto(order()[0]); setPlaying(true);
+    });
+  });
+
+  document.querySelectorAll("[data-speed]").forEach(b => {
+    b.addEventListener("click", () => {
+      speed = parseFloat(b.dataset.speed);
+      document.querySelectorAll("[data-speed]").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+      goto(cur);
+    });
+  });
+
+  addEventListener("keydown", e => {
+    if (e.key === "ArrowRight") { next(); pause(); }
+    else if (e.key === "ArrowLeft") { prev(); pause(); }
+    else if (e.key === " ") { e.preventDefault(); setPlaying(!playing); }
+  });
+
+  NODES.forEach(n => nodeEls[n.id].addEventListener("click", () => {
+    const i = STEPS.findIndex(s => (s.pulse || []).includes(n.id) ||
+      (s.link && (L[s.link].from[0] === n.id || L[s.link].to[0] === n.id)));
+    if (i >= 0) { goto(i); pause(); }
+  }));
+
+  setPlaying(playing);
+  goto(0);
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
