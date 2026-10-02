@@ -3,12 +3,8 @@ name: deploy-architecture-page
 # Keeps the repo-root index.html in sync with architecture-animated.html so
 # GitHub Pages (which serves this branch's root) shows the architecture page
 # instead of the README. .nojekyll stops Jekyll from reprocessing the HTML.
+# Manual only. Run it from the Actions tab after changing the architecture page.
 on:
-  push:
-    branches: [prod]
-    paths:
-      - "architecture-animated.html"
-      - ".github/workflows/pages.yml"
   workflow_dispatch:
 
 permissions:
