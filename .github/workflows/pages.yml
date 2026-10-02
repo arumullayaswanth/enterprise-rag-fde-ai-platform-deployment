@@ -1,4 +1,4 @@
-name: deploy-architecture-page
+name: deploy-architecture-pages
 
 # Publishes architecture-animated.html to GitHub Pages by pushing the built
 # site to a gh-pages branch. Uses peaceiris/actions-gh-pages, which deploys
@@ -39,3 +39,12 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./_site
           publish_branch: gh-pages
+
+      # Print the live URL in the run summary and as a notice, so the link is
+      # easy to find on the Actions run page.
+      - name: Show the page URL
+        run: |
+          URL="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/"
+          echo "::notice title=Page URL::${URL}"
+          echo "### Architecture page" >> "$GITHUB_STEP_SUMMARY"
+          echo "[$URL]($URL)" >> "$GITHUB_STEP_SUMMARY"
