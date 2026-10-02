@@ -1,10 +1,10 @@
 name: deploy-architecture-page
 
 # Publishes architecture-animated.html to GitHub Pages.
-# Runs when that file changes on main, or on manual trigger.
+# Runs when that file changes on prod, or on manual trigger.
 on:
   push:
-    branches: [main]
+    branches: [prod]
     paths:
       - "architecture-animated.html"
       - ".github/workflows/pages.yml"
