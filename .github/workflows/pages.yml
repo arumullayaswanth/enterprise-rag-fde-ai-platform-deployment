@@ -37,7 +37,11 @@ jobs:
           mkdir -p _site
           cp architecture-animated.html _site/index.html
 
+      # enablement: true turns Pages on for the repo if it isn't already,
+      # so no manual Settings → Pages step is needed.
       - uses: actions/configure-pages@v5
+        with:
+          enablement: true
 
       - uses: actions/upload-pages-artifact@v3
         with:
