@@ -12,6 +12,11 @@
 # without editing anything.
 resource "aws_s3_bucket" "documents" {
   bucket = "${var.name}-documents-${var.account_id}"
+
+  # Let Terraform empty and delete the bucket on destroy, even if it still has
+  # objects or old versions. Without this, destroy fails on a non-empty
+  # versioned bucket.
+  force_destroy = true
 }
 
 resource "aws_s3_bucket_public_access_block" "documents" {

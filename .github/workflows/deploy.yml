@@ -213,15 +213,33 @@ jobs:
             -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}" \
             -backend-config="region=$AWS_REGION"
 
-      # Empty the documents bucket first, or S3 destroy fails on a non-empty
-      # versioned bucket. Ignore errors if it does not exist yet.
-      - name: Empty the documents bucket
+      # Force-empty the documents bucket first. It is versioned, so a plain
+      # `s3 rm` leaves old versions and delete markers behind and destroy
+      # fails. Delete every current object, every version, and every delete
+      # marker. Errors are ignored so destroy still runs if the bucket is gone.
+      - name: Force-empty the documents bucket
         run: |
           set +e
           BUCKET=$(terraform -chdir=terraform output -raw documents_bucket 2>/dev/null)
-          if [ -n "$BUCKET" ]; then
-            echo "Emptying s3://$BUCKET"
-            aws s3 rm "s3://$BUCKET" --recursive
+          if [ -z "$BUCKET" ]; then
+            echo "No bucket in state; skipping."
+            exit 0
+          fi
+          echo "Force-emptying s3://$BUCKET (objects + versions + delete markers)"
+          aws s3 rm "s3://$BUCKET" --recursive
+
+          # Delete all object versions.
+          aws s3api list-object-versions --bucket "$BUCKET" \
+            --query '{Objects: Versions[].{Key:Key,VersionId:VersionId}}' --output json > versions.json 2>/dev/null
+          if [ -s versions.json ] && grep -q '"Key"' versions.json; then
+            aws s3api delete-objects --bucket "$BUCKET" --delete file://versions.json || true
+          fi
+
+          # Delete all delete markers.
+          aws s3api list-object-versions --bucket "$BUCKET" \
+            --query '{Objects: DeleteMarkers[].{Key:Key,VersionId:VersionId}}' --output json > markers.json 2>/dev/null
+          if [ -s markers.json ] && grep -q '"Key"' markers.json; then
+            aws s3api delete-objects --bucket "$BUCKET" --delete file://markers.json || true
           fi
           exit 0
 
