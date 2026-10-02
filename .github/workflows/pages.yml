@@ -1,0 +1,48 @@
+name: deploy-architecture-page
+
+# Publishes architecture-animated.html to GitHub Pages.
+# Runs when that file changes on main, or on manual trigger.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "architecture-animated.html"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch:
+
+# Pages needs these permissions; id-token is required by the deploy action.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Only one Pages deploy at a time; let an in-progress run finish.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: build-and-deploy
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # Assemble the site: serve the architecture page as the site index.
+      - name: Build the site folder
+        run: |
+          mkdir -p _site
+          cp architecture-animated.html _site/index.html
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

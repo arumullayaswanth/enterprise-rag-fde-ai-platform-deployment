@@ -7,6 +7,7 @@ Returns a normalized list of Document dicts:
 from __future__ import annotations
 
 import io
+import json
 import os
 from dataclasses import dataclass, field, asdict
 from pathlib import Path
@@ -14,7 +15,7 @@ from typing import Iterable, Iterator
 
 import boto3
 
-SUPPORTED_SUFFIXES = {".txt", ".md", ".pdf"}
+SUPPORTED_SUFFIXES = {".txt", ".md", ".pdf", ".json"}
 
 
 @dataclass
@@ -41,6 +42,46 @@ def _read_pdf(raw: bytes) -> str:
     return "\n\n".join(pages)
 
 
+def _flatten(value, prefix: str = "") -> list[str]:
+    """Walk a nested JSON value into "key path: value" lines.
+
+    A record like {"reporting_line": {"manager_name": "..."}} becomes
+    "Reporting Line Manager Name: ...", which embeds and retrieves far better
+    than a raw JSON blob full of braces and quotes.
+    """
+    lines: list[str] = []
+    if isinstance(value, dict):
+        for key, child in value.items():
+            label = key.replace("_", " ").title()
+            path = f"{prefix} {label}".strip()
+            lines.extend(_flatten(child, path))
+    elif isinstance(value, list):
+        if all(not isinstance(v, (dict, list)) for v in value):
+            lines.append(f"{prefix}: {', '.join(str(v) for v in value)}")
+        else:
+            for i, child in enumerate(value, start=1):
+                lines.extend(_flatten(child, f"{prefix} {i}".strip()))
+    else:
+        lines.append(f"{prefix}: {value}")
+    return lines
+
+
+def _json_records(raw: bytes) -> list[dict]:
+    """Return the top-level JSON records as a list (one entry per object)."""
+    data = json.loads(_decode(raw))
+    return data if isinstance(data, list) else [data]
+
+
+def _render_record(record) -> str:
+    """Render a single JSON record as readable "Key Path: value" lines."""
+    return "\n".join(_flatten(record))
+
+
+def _read_json(raw: bytes) -> str:
+    """Render a JSON document (object or array of objects) as readable text."""
+    return "\n\n".join(_render_record(r) for r in _json_records(raw))
+
+
 def parse_bytes(raw: bytes, source: str) -> str:
     """Turn raw file bytes into plain text based on the file suffix."""
     suffix = Path(source).suffix.lower()
@@ -48,7 +89,32 @@ def parse_bytes(raw: bytes, source: str) -> str:
         raise ValueError(f"unsupported file type: {suffix or '<none>'} ({source})")
     if suffix == ".pdf":
         return _read_pdf(raw)
+    if suffix == ".json":
+        return _read_json(raw)
     return _decode(raw)
+
+
+def _documents_from_bytes(raw: bytes, doc_id: str, source: str, metadata: dict) -> Iterator[Document]:
+    """Turn raw file bytes into one or more Documents.
+
+    A JSON array becomes one Document per record so each entry (an employee,
+    a product, etc.) stays whole through chunking and is retrieved on its own
+    rather than being split or merged with its neighbours.
+    """
+    if Path(source).suffix.lower() == ".json":
+        records = _json_records(raw)
+        for i, record in enumerate(records):
+            text = _render_record(record)
+            if not text.strip():
+                continue
+            # Prefer a stable, human-meaningful id when the record carries one.
+            key = record.get("employee_id") or record.get("id") if isinstance(record, dict) else None
+            rid = f"{doc_id}#{key}" if key else f"{doc_id}#{i}"
+            yield Document(id=rid, source=source, text=text, metadata=dict(metadata))
+        return
+    text = parse_bytes(raw, source)
+    if text.strip():
+        yield Document(id=doc_id, source=source, text=text, metadata=dict(metadata))
 
 
 def load_local(root: str | os.PathLike[str]) -> Iterator[Document]:
@@ -58,13 +124,11 @@ def load_local(root: str | os.PathLike[str]) -> Iterator[Document]:
     for path in paths:
         if not path.is_file() or path.suffix.lower() not in SUPPORTED_SUFFIXES:
             continue
-        text = parse_bytes(path.read_bytes(), path.name)
-        if not text.strip():
-            continue
-        yield Document(
-            id=str(path.relative_to(root_path) if root_path.is_dir() else path.name),
+        doc_id = str(path.relative_to(root_path) if root_path.is_dir() else path.name)
+        yield from _documents_from_bytes(
+            path.read_bytes(),
+            doc_id=doc_id,
             source=str(path),
-            text=text,
             metadata={"bytes": path.stat().st_size},
         )
 
@@ -79,13 +143,10 @@ def load_s3(bucket: str, prefix: str = "", client=None) -> Iterator[Document]:
             if key.endswith("/") or Path(key).suffix.lower() not in SUPPORTED_SUFFIXES:
                 continue
             raw = s3.get_object(Bucket=bucket, Key=key)["Body"].read()
-            text = parse_bytes(raw, key)
-            if not text.strip():
-                continue
-            yield Document(
-                id=key,
+            yield from _documents_from_bytes(
+                raw,
+                doc_id=key,
                 source=f"s3://{bucket}/{key}",
-                text=text,
                 metadata={"bytes": obj.get("Size", len(raw))},
             )
 

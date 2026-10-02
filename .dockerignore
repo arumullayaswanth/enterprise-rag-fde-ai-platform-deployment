@@ -1,0 +1,28 @@
+# Keep the build context small and reproducible. The frontend is built fresh
+# inside the image's Node stage, so local build artifacts must not leak in.
+**/node_modules
+frontend/dist
+.vite
+
+# Python caches and virtualenvs
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+
+# Infra and VCS noise not needed by the image
+.git
+.github
+terraform/.terraform
+terraform/*.tfstate*
+docs
+*.md
+!README.md
+
+# Local env / editor
+.env
+.env.*
+.vscode
+.idea
+.DS_Store

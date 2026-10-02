@@ -1,0 +1,114 @@
+[
+    {
+        "employee_id": "EMP_47112",
+        "name": "Carlos Mendoza",
+        "department": "Sales",
+        "metric_type": "sales_revenue",
+        "quarter": "Q3-2026",
+        "revenue_closed_usd": 1842500.75,
+        "quota_attainment_pct": 128.4,
+        "deals_won": 23,
+        "appraisal_score": 4.7,
+        "leaderboard_rank": 1
+    },
+    {
+        "employee_id": "EMP_20566",
+        "name": "Sophie Laurent",
+        "department": "Sales",
+        "metric_type": "sales_revenue",
+        "quarter": "Q3-2026",
+        "revenue_closed_usd": 1310200.00,
+        "quota_attainment_pct": 112.9,
+        "deals_won": 15,
+        "appraisal_score": 4.5,
+        "leaderboard_rank": 2
+    },
+    {
+        "employee_id": "EMP_61209",
+        "name": "Maya Patel",
+        "department": "Human Resources",
+        "metric_type": "tickets_resolved",
+        "quarter": "Q3-2026",
+        "tickets_resolved": 412,
+        "avg_resolution_hours": 6.3,
+        "appraisal_score": 4.6,
+        "leaderboard_rank": 3
+    },
+    {
+        "employee_id": "EMP_55713",
+        "name": "Tomas Novak",
+        "department": "Core Infrastructure",
+        "metric_type": "incident_response",
+        "quarter": "Q3-2026",
+        "incidents_resolved": 87,
+        "uptime_contribution_pct": 99.98,
+        "appraisal_score": 4.8,
+        "leaderboard_rank": 4
+    },
+    {
+        "employee_id": "EMP_51277",
+        "name": "Daniel Okafor",
+        "department": "Payments Platform",
+        "metric_type": "code_delivery",
+        "quarter": "Q3-2026",
+        "story_points_delivered": 164.5,
+        "pull_requests_merged": 112,
+        "appraisal_score": 4.3,
+        "leaderboard_rank": 5
+    },
+    {
+        "employee_id": "EMP_90188",
+        "name": "Lucas Fernandez",
+        "department": "Data & Analytics",
+        "metric_type": "model_performance",
+        "quarter": "Q3-2026",
+        "models_shipped": 7,
+        "avg_model_accuracy_pct": 93.2,
+        "appraisal_score": 4.4,
+        "leaderboard_rank": 6
+    },
+    {
+        "employee_id": "EMP_84920",
+        "name": "Yaswanth Reddy",
+        "department": "Core Infrastructure",
+        "metric_type": "code_delivery",
+        "quarter": "Q3-2026",
+        "story_points_delivered": 142.0,
+        "pull_requests_merged": 98,
+        "appraisal_score": 4.9,
+        "leaderboard_rank": 7
+    },
+    {
+        "employee_id": "EMP_93028",
+        "name": "Yuki Tanaka",
+        "department": "Payments Platform",
+        "metric_type": "qa_coverage",
+        "quarter": "Q3-2026",
+        "test_cases_authored": 540,
+        "defects_caught": 76,
+        "appraisal_score": 4.2,
+        "leaderboard_rank": 8
+    },
+    {
+        "employee_id": "EMP_72650",
+        "name": "Grace Kim",
+        "department": "Design",
+        "metric_type": "design_delivery",
+        "quarter": "Q3-2026",
+        "designs_shipped": 19,
+        "usability_score": 88.5,
+        "appraisal_score": 4.1,
+        "leaderboard_rank": 9
+    },
+    {
+        "employee_id": "EMP_67345",
+        "name": "Aisha Rahman",
+        "department": "Product",
+        "metric_type": "product_delivery",
+        "quarter": "Q3-2026",
+        "features_launched": 11,
+        "adoption_rate_pct": 71.8,
+        "appraisal_score": 4.0,
+        "leaderboard_rank": 10
+    }
+]

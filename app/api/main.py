@@ -29,6 +29,7 @@ import os
 from pathlib import Path
 
 from fastapi import Depends, FastAPI, Header, HTTPException, status
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
@@ -44,7 +45,11 @@ logger = logging.getLogger(__name__)
 
 API_KEY = os.getenv("API_KEY", "")
 REQUIRE_AUTH = os.getenv("REQUIRE_AUTH", "true").lower() != "false"
-STATIC_DIR = Path(__file__).parent / "static"
+# Serves the built React app (Vite output). Override with FRONTEND_DIST for a
+# custom build location; defaults to ../../frontend/dist relative to this file.
+STATIC_DIR = Path(
+    os.getenv("FRONTEND_DIST", Path(__file__).resolve().parents[2] / "frontend" / "dist")
+)
 
 if REQUIRE_AUTH and not API_KEY:
     raise RuntimeError(
@@ -53,6 +58,24 @@ if REQUIRE_AUTH and not API_KEY:
     )
 
 app = FastAPI(title="RAG DevOps API", version="1.1.0")
+
+# CORS. The React dev server (and any configured production origin) call this
+# API from a different origin, so the browser needs these headers. Origins are
+# driven by CORS_ALLOW_ORIGINS (comma-separated); defaults cover local Vite.
+_cors_origins = [
+    o.strip()
+    for o in os.getenv(
+        "CORS_ALLOW_ORIGINS",
+        "http://localhost:5173,http://127.0.0.1:5173",
+    ).split(",")
+    if o.strip()
+]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=_cors_origins,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["*"],
+)
 
 
 def require_api_key(x_api_key: str = Header(default="")) -> None:
@@ -101,6 +124,68 @@ def health() -> dict:
     return {"status": "ok"}
 
 
+# ----------------------------------------------------------------- dashboard
+# The UI dashboard needs corpus aggregates (headcount by department, the
+# leaderboard, cost-center budgets). These come straight from the structured
+# JSON on disk, which is fast and does not depend on OpenSearch being warm.
+import json
+from functools import lru_cache
+
+DATA_DIR = Path(os.getenv("DATA_DIR", Path(__file__).resolve().parents[2] / "sample-data"))
+
+
+def _load_json(name: str) -> list[dict]:
+    path = DATA_DIR / "structured" / name
+    if not path.is_file():
+        return []
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        logger.warning("could not read %s: %s", path, exc)
+        return []
+    return data if isinstance(data, list) else [data]
+
+
+@lru_cache(maxsize=1)
+def _dashboard_payload() -> dict:
+    employees = _load_json("employee-directory.json")
+    metrics = _load_json("performance-metrics.json")
+    cost_centers = _load_json("cost-centers.json")
+
+    by_dept: dict[str, int] = {}
+    by_status: dict[str, int] = {}
+    by_level: dict[str, int] = {}
+    for e in employees:
+        by_dept[e.get("department", "Unknown")] = by_dept.get(e.get("department", "Unknown"), 0) + 1
+        by_status[e.get("employment_status", "Unknown")] = by_status.get(e.get("employment_status", "Unknown"), 0) + 1
+        by_level[e.get("level", "?")] = by_level.get(e.get("level", "?"), 0) + 1
+
+    leaderboard = sorted(metrics, key=lambda m: m.get("leaderboard_rank", 999))[:10]
+    total_budget = sum(c.get("annual_budget_usd", 0) for c in cost_centers)
+    total_spend = sum(c.get("ytd_spend_usd", 0) for c in cost_centers)
+
+    return {
+        "totals": {
+            "employees": len(employees),
+            "departments": len(by_dept),
+            "cost_centers": len(cost_centers),
+            "annual_budget_usd": total_budget,
+            "ytd_spend_usd": total_spend,
+        },
+        "by_department": [{"name": k, "count": v} for k, v in sorted(by_dept.items(), key=lambda kv: -kv[1])],
+        "by_status": [{"name": k, "count": v} for k, v in by_status.items()],
+        "by_level": [{"name": k, "count": v} for k, v in sorted(by_level.items())],
+        "leaderboard": leaderboard,
+        "cost_centers": sorted(cost_centers, key=lambda c: -c.get("annual_budget_usd", 0)),
+        "employees": employees,
+    }
+
+
+@app.get("/stats", dependencies=[Depends(require_api_key)])
+def stats() -> dict:
+    return _dashboard_payload()
+
+
 @app.get("/ready", dependencies=[Depends(require_api_key)])
 def ready() -> dict:
     try:
@@ -144,14 +229,27 @@ def query(req: QueryRequest) -> QueryResponse:
 
 
 # ------------------------------------------------------------------- web UI
-# Mounted last so it cannot shadow the API routes above. The assets are public
-# because they hold no credentials; the user supplies the API key at runtime.
-if STATIC_DIR.is_dir():
+# Serves the built React single-page app. Mounted last so it cannot shadow the
+# API routes above. The assets are public because they hold no credentials; the
+# user supplies the API key at runtime. In local development the React app runs
+# on the Vite dev server (port 5173) instead and talks to this API via CORS.
+if (STATIC_DIR / "index.html").is_file():
+    # Vite emits hashed assets under /assets; mount them at the same path.
+    assets_dir = STATIC_DIR / "assets"
+    if assets_dir.is_dir():
+        app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
 
     @app.get("/", include_in_schema=False)
     def index() -> FileResponse:
         return FileResponse(STATIC_DIR / "index.html")
 
-    app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
-else:  # pragma: no cover - only hit in a malformed image
-    logger.warning("static directory %s is missing; web UI disabled", STATIC_DIR)
+    # SPA fallback: any unknown non-API path returns index.html so client-side
+    # view switching works on a hard refresh.
+    @app.get("/{full_path:path}", include_in_schema=False)
+    def spa_fallback(full_path: str) -> FileResponse:
+        candidate = STATIC_DIR / full_path
+        if candidate.is_file():
+            return FileResponse(candidate)
+        return FileResponse(STATIC_DIR / "index.html")
+else:  # pragma: no cover - the dev server serves the UI in local development
+    logger.warning("frontend build %s not found; run `npm run build` to serve the UI", STATIC_DIR)

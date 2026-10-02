@@ -1,49 +1,49 @@
 output "web_url" {
   description = "Open this in a browser to use the RAG console."
-  value       = "http://${aws_lb.api.dns_name}"
+  value       = "http://${module.alb.dns_name}"
 }
 
 output "documents_bucket" {
   description = "S3 bucket holding source documents. Upload under uploads/ to trigger ingestion."
-  value       = aws_s3_bucket.documents.id
+  value       = module.storage.bucket_id
 }
 
 # ------------------------------------------------------------------- images
 output "api_repository_url" {
   description = "Push the app/api/Dockerfile image here."
-  value       = aws_ecr_repository.api.repository_url
+  value       = module.ecr.api_repository_url
 }
 
 output "ingest_repository_url" {
   description = "Push the app/ingestion/Dockerfile image here."
-  value       = aws_ecr_repository.ingest.repository_url
+  value       = module.ecr.ingest_repository_url
 }
 
 # ---------------------------------------------------------------- workloads
 output "ecs_cluster_name" {
   description = "ECS cluster running the API."
-  value       = aws_ecs_cluster.main.name
+  value       = module.ecs.cluster_name
 }
 
 output "ecs_service_name" {
   description = "ECS service running the API."
-  value       = aws_ecs_service.api.name
+  value       = module.ecs.service_name
 }
 
 output "ingest_lambda_name" {
   description = "Ingestion Lambda triggered by S3 uploads."
-  value       = aws_lambda_function.ingest.function_name
+  value       = module.lambda.function_name
 }
 
 output "ingest_dlq_url" {
   description = "Dead-letter queue for failed ingests."
-  value       = aws_sqs_queue.ingest_dlq.url
+  value       = module.lambda.dlq_url
 }
 
 # ------------------------------------------------------------------- search
 output "opensearch_endpoint" {
   description = "VPC-only OpenSearch endpoint used by the app."
-  value       = aws_opensearch_domain.vectors.endpoint
+  value       = module.search.endpoint
 }
 
 output "opensearch_index" {
@@ -59,10 +59,10 @@ output "chat_model_id" {
 # --------------------------------------------------------------------- misc
 output "api_key_secret_arn" {
   description = "Secrets Manager ARN holding the API key. Read it with the AWS CLI; it is not printed here."
-  value       = aws_secretsmanager_secret.api_key.arn
+  value       = module.security.api_key_secret_arn
 }
 
 output "vpc_id" {
   description = "VPC created by this stack."
-  value       = aws_vpc.main.id
+  value       = module.network.vpc_id
 }

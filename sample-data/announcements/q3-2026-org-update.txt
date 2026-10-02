@@ -1,0 +1,28 @@
+COMPANY-WIDE ANNOUNCEMENT
+Q3 2026 Organizational Update
+From: Helena Brooks, Chief Executive Officer
+
+Team,
+
+Three updates as we close out Q3 2026.
+
+1. Engineering & Product
+Priya Nair, SVP of Engineering & Product, has consolidated the Core
+Infrastructure, Payments Platform, Data & Analytics, Product, and Design
+functions under a single technology organization (cost center TECH-010). This
+alignment is already paying off: deploy times are down 60 percent and the
+multi-region failover program is on track.
+
+2. Sales Performance
+Sales delivered a record quarter. Carlos Mendoza topped the leaderboard with
+1.84 million dollars in closed revenue at 128 percent of quota, under the
+leadership of Sophie Laurent, Regional Sales Director.
+
+3. People
+We welcomed new team members across Engineering and Security. A reminder that
+our updated PTO and leave policy is available in the People Handbook. Please
+direct questions to Maya Patel in People Operations.
+
+Thank you for the work this quarter.
+
+Helena

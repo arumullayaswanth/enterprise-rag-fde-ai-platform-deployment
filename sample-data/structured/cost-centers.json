@@ -1,0 +1,112 @@
+[
+    {
+        "cost_center_code": "EXEC-001",
+        "name": "Executive Office",
+        "owner_id": "EMP_00001",
+        "owner_name": "Helena Brooks",
+        "parent_cost_center": null,
+        "annual_budget_usd": 4200000.00,
+        "ytd_spend_usd": 2810000.00,
+        "headcount": 6,
+        "currency": "USD"
+    },
+    {
+        "cost_center_code": "TECH-010",
+        "name": "Technology Organization",
+        "owner_id": "EMP_00007",
+        "owner_name": "Priya Nair",
+        "parent_cost_center": "EXEC-001",
+        "annual_budget_usd": 18500000.00,
+        "ytd_spend_usd": 12940000.00,
+        "headcount": 142,
+        "currency": "USD"
+    },
+    {
+        "cost_center_code": "ENG-400",
+        "name": "Core Infrastructure Engineering",
+        "owner_id": "EMP_00124",
+        "owner_name": "Marcus Vance",
+        "parent_cost_center": "TECH-010",
+        "annual_budget_usd": 6200000.00,
+        "ytd_spend_usd": 4310000.00,
+        "headcount": 38,
+        "currency": "USD"
+    },
+    {
+        "cost_center_code": "ENG-510",
+        "name": "Payments Platform Engineering",
+        "owner_id": "EMP_33810",
+        "owner_name": "Elena Rossi",
+        "parent_cost_center": "TECH-010",
+        "annual_budget_usd": 4100000.00,
+        "ytd_spend_usd": 2650000.00,
+        "headcount": 24,
+        "currency": "USD"
+    },
+    {
+        "cost_center_code": "DAT-200",
+        "name": "Data & Analytics",
+        "owner_id": "EMP_44021",
+        "owner_name": "Nadia Petrova",
+        "parent_cost_center": "TECH-010",
+        "annual_budget_usd": 3300000.00,
+        "ytd_spend_usd": 2010000.00,
+        "headcount": 21,
+        "currency": "USD"
+    },
+    {
+        "cost_center_code": "PRD-100",
+        "name": "Product Management",
+        "owner_id": "EMP_00302",
+        "owner_name": "James Whitfield",
+        "parent_cost_center": "TECH-010",
+        "annual_budget_usd": 2200000.00,
+        "ytd_spend_usd": 1480000.00,
+        "headcount": 16,
+        "currency": "USD"
+    },
+    {
+        "cost_center_code": "DSG-300",
+        "name": "Design",
+        "owner_id": "EMP_18944",
+        "owner_name": "Oliver Grant",
+        "parent_cost_center": "PRD-100",
+        "annual_budget_usd": 1400000.00,
+        "ytd_spend_usd": 910000.00,
+        "headcount": 12,
+        "currency": "USD"
+    },
+    {
+        "cost_center_code": "SEC-200",
+        "name": "Information Security",
+        "owner_id": "EMP_29983",
+        "owner_name": "Fatima Al-Sayed",
+        "parent_cost_center": "EXEC-001",
+        "annual_budget_usd": 3900000.00,
+        "ytd_spend_usd": 2550000.00,
+        "headcount": 18,
+        "currency": "USD"
+    },
+    {
+        "cost_center_code": "HR-100",
+        "name": "People & Human Resources",
+        "owner_id": "EMP_00419",
+        "owner_name": "Robert Hale",
+        "parent_cost_center": "EXEC-001",
+        "annual_budget_usd": 2600000.00,
+        "ytd_spend_usd": 1720000.00,
+        "headcount": 15,
+        "currency": "USD"
+    },
+    {
+        "cost_center_code": "SAL-300",
+        "name": "Sales",
+        "owner_id": "EMP_20566",
+        "owner_name": "Sophie Laurent",
+        "parent_cost_center": "EXEC-001",
+        "annual_budget_usd": 5100000.00,
+        "ytd_spend_usd": 3380000.00,
+        "headcount": 34,
+        "currency": "USD"
+    }
+]

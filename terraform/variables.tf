@@ -7,7 +7,7 @@ variable "project_name" {
 variable "environment" {
   description = "Deployment environment (dev, staging, prod)."
   type        = string
-  default     = "dev"
+  default     = "prod"
 
   validation {
     condition     = contains(["dev", "staging", "prod"], var.environment)
@@ -54,7 +54,10 @@ variable "allowed_web_cidrs" {
   description = <<-EOT
     CIDRs allowed to reach the public load balancer. The listener is plain HTTP,
     so narrow this to your own address unless you add a TLS certificate.
-    This is the only access control when require_auth is false.
+
+    PRODUCTION WARNING: the default below is open to the entire internet
+    (0.0.0.0/0) over plain HTTP. For a real production deployment, override this
+    with your office/VPN CIDRs and add an ACM certificate + HTTPS listener.
   EOT
   type        = list(string)
   default     = ["0.0.0.0/0"]
@@ -69,9 +72,11 @@ variable "require_auth" {
     With it false, anyone who can reach the load balancer can read the indexed
     corpus and spend Bedrock tokens billed to this account, so pair false with a
     narrow allowed_web_cidrs.
+
+    Defaults to true: this is a production stack and the API must not be open.
   EOT
   type        = bool
-  default     = false
+  default     = true
 }
 
 # ------------------------------------------------------------------- search
@@ -82,9 +87,9 @@ variable "opensearch_instance_type" {
 }
 
 variable "opensearch_instance_count" {
-  description = "Number of OpenSearch data nodes. Use 2+ in production."
+  description = "Number of OpenSearch data nodes. 2+ for production resilience (enables zone awareness)."
   type        = number
-  default     = 1
+  default     = 2
 }
 
 variable "opensearch_volume_size" {

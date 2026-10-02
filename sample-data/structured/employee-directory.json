@@ -1,0 +1,520 @@
+[
+    {
+        "employee_id": "EMP_84920",
+        "first_name": "Yaswanth",
+        "preferred_name": "Yash",
+        "last_name": "Reddy",
+        "corporate_email": "yaswanth.arumulla@gmail.com",
+        "job_title": "Lead DevOps Engineer",
+        "department": "Core Infrastructure",
+        "cost_center": "ENG-402",
+        "office_location": "San Francisco, CA (Hybrid)",
+        "employment_status": "Active",
+        "employment_type": "Full-Time",
+        "level": "L6",
+        "level_rank": 6,
+        "reporting_line": {
+            "manager_id": "EMP_00124",
+            "manager_name": "Marcus Vance",
+            "direct_reports_count": 4
+        },
+        "metadata_tags": [
+            "Engineering",
+            "Infrastructure",
+            "L6",
+            "Full-Time"
+        ]
+    },
+    {
+        "employee_id": "EMP_00124",
+        "first_name": "Marcus",
+        "preferred_name": "Marcus",
+        "last_name": "Vance",
+        "corporate_email": "m.vance@company.com",
+        "job_title": "Director of Engineering",
+        "department": "Core Infrastructure",
+        "cost_center": "ENG-400",
+        "office_location": "San Francisco, CA (On-site)",
+        "employment_status": "Active",
+        "employment_type": "Full-Time",
+        "level": "L8",
+        "level_rank": 8,
+        "reporting_line": {
+            "manager_id": "EMP_00007",
+            "manager_name": "Priya Nair",
+            "direct_reports_count": 7
+        },
+        "metadata_tags": [
+            "Engineering",
+            "Leadership",
+            "L8",
+            "Full-Time"
+        ]
+    },
+    {
+        "employee_id": "EMP_51277",
+        "first_name": "Daniel",
+        "preferred_name": "Dan",
+        "last_name": "Okafor",
+        "corporate_email": "d.okafor@company.com",
+        "job_title": "Software Engineer II",
+        "department": "Payments Platform",
+        "cost_center": "ENG-511",
+        "office_location": "Austin, TX (Hybrid)",
+        "employment_status": "Active",
+        "employment_type": "Full-Time",
+        "level": "L4",
+        "level_rank": 4,
+        "reporting_line": {
+            "manager_id": "EMP_33810",
+            "manager_name": "Elena Rossi",
+            "direct_reports_count": 0
+        },
+        "metadata_tags": [
+            "Engineering",
+            "Payments",
+            "L4",
+            "Full-Time"
+        ]
+    },
+    {
+        "employee_id": "EMP_33810",
+        "first_name": "Elena",
+        "preferred_name": "Elena",
+        "last_name": "Rossi",
+        "corporate_email": "e.rossi@company.com",
+        "job_title": "Engineering Manager",
+        "department": "Payments Platform",
+        "cost_center": "ENG-510",
+        "office_location": "Austin, TX (Hybrid)",
+        "employment_status": "Active",
+        "employment_type": "Full-Time",
+        "level": "L7",
+        "level_rank": 7,
+        "reporting_line": {
+            "manager_id": "EMP_00124",
+            "manager_name": "Marcus Vance",
+            "direct_reports_count": 6
+        },
+        "metadata_tags": [
+            "Engineering",
+            "Payments",
+            "L7",
+            "Full-Time"
+        ]
+    },
+    {
+        "employee_id": "EMP_67345",
+        "first_name": "Aisha",
+        "preferred_name": "Aisha",
+        "last_name": "Rahman",
+        "corporate_email": "a.rahman@company.com",
+        "job_title": "Product Manager",
+        "department": "Product",
+        "cost_center": "PRD-120",
+        "office_location": "New York, NY (Hybrid)",
+        "employment_status": "Active",
+        "employment_type": "Full-Time",
+        "level": "L5",
+        "level_rank": 5,
+        "reporting_line": {
+            "manager_id": "EMP_00302",
+            "manager_name": "James Whitfield",
+            "direct_reports_count": 0
+        },
+        "metadata_tags": [
+            "Product",
+            "L5",
+            "Full-Time"
+        ]
+    },
+    {
+        "employee_id": "EMP_00302",
+        "first_name": "James",
+        "preferred_name": "James",
+        "last_name": "Whitfield",
+        "corporate_email": "j.whitfield@company.com",
+        "job_title": "Group Product Manager",
+        "department": "Product",
+        "cost_center": "PRD-100",
+        "office_location": "New York, NY (On-site)",
+        "employment_status": "Active",
+        "employment_type": "Full-Time",
+        "level": "L7",
+        "level_rank": 7,
+        "reporting_line": {
+            "manager_id": "EMP_00007",
+            "manager_name": "Priya Nair",
+            "direct_reports_count": 5
+        },
+        "metadata_tags": [
+            "Product",
+            "Leadership",
+            "L7",
+            "Full-Time"
+        ]
+    },
+    {
+        "employee_id": "EMP_90188",
+        "first_name": "Lucas",
+        "preferred_name": "Lucas",
+        "last_name": "Fernandez",
+        "corporate_email": "l.fernandez@company.com",
+        "job_title": "Data Scientist",
+        "department": "Data & Analytics",
+        "cost_center": "DAT-210",
+        "office_location": "Remote (US)",
+        "employment_status": "Active",
+        "employment_type": "Full-Time",
+        "level": "L5",
+        "level_rank": 5,
+        "reporting_line": {
+            "manager_id": "EMP_44021",
+            "manager_name": "Nadia Petrova",
+            "direct_reports_count": 0
+        },
+        "metadata_tags": [
+            "Data",
+            "Analytics",
+            "L5",
+            "Full-Time"
+        ]
+    },
+    {
+        "employee_id": "EMP_44021",
+        "first_name": "Nadia",
+        "preferred_name": "Nadia",
+        "last_name": "Petrova",
+        "corporate_email": "n.petrova@company.com",
+        "job_title": "Head of Data Science",
+        "department": "Data & Analytics",
+        "cost_center": "DAT-200",
+        "office_location": "Seattle, WA (Hybrid)",
+        "employment_status": "Active",
+        "employment_type": "Full-Time",
+        "level": "L8",
+        "level_rank": 8,
+        "reporting_line": {
+            "manager_id": "EMP_00007",
+            "manager_name": "Priya Nair",
+            "direct_reports_count": 8
+        },
+        "metadata_tags": [
+            "Data",
+            "Leadership",
+            "L8",
+            "Full-Time"
+        ]
+    },
+    {
+        "employee_id": "EMP_72650",
+        "first_name": "Grace",
+        "preferred_name": "Grace",
+        "last_name": "Kim",
+        "corporate_email": "g.kim@company.com",
+        "job_title": "UX Designer",
+        "department": "Design",
+        "cost_center": "DSG-310",
+        "office_location": "Los Angeles, CA (Hybrid)",
+        "employment_status": "On Leave",
+        "employment_type": "Full-Time",
+        "level": "L4",
+        "level_rank": 4,
+        "reporting_line": {
+            "manager_id": "EMP_18944",
+            "manager_name": "Oliver Grant",
+            "direct_reports_count": 0
+        },
+        "metadata_tags": [
+            "Design",
+            "L4",
+            "Full-Time"
+        ]
+    },
+    {
+        "employee_id": "EMP_18944",
+        "first_name": "Oliver",
+        "preferred_name": "Ollie",
+        "last_name": "Grant",
+        "corporate_email": "o.grant@company.com",
+        "job_title": "Design Lead",
+        "department": "Design",
+        "cost_center": "DSG-300",
+        "office_location": "Los Angeles, CA (Hybrid)",
+        "employment_status": "Active",
+        "employment_type": "Full-Time",
+        "level": "L6",
+        "level_rank": 6,
+        "reporting_line": {
+            "manager_id": "EMP_00302",
+            "manager_name": "James Whitfield",
+            "direct_reports_count": 4
+        },
+        "metadata_tags": [
+            "Design",
+            "Leadership",
+            "L6",
+            "Full-Time"
+        ]
+    },
+    {
+        "employee_id": "EMP_55713",
+        "first_name": "Tomas",
+        "preferred_name": "Tom",
+        "last_name": "Novak",
+        "corporate_email": "t.novak@company.com",
+        "job_title": "Site Reliability Engineer",
+        "department": "Core Infrastructure",
+        "cost_center": "ENG-402",
+        "office_location": "Denver, CO (Remote)",
+        "employment_status": "Active",
+        "employment_type": "Full-Time",
+        "level": "L5",
+        "level_rank": 5,
+        "reporting_line": {
+            "manager_id": "EMP_84920",
+            "manager_name": "Yaswanth Reddy",
+            "direct_reports_count": 0
+        },
+        "metadata_tags": [
+            "Engineering",
+            "Infrastructure",
+            "SRE",
+            "L5",
+            "Full-Time"
+        ]
+    },
+    {
+        "employee_id": "EMP_61209",
+        "first_name": "Maya",
+        "preferred_name": "Maya",
+        "last_name": "Patel",
+        "corporate_email": "m.patel@company.com",
+        "job_title": "People Operations Partner",
+        "department": "Human Resources",
+        "cost_center": "HR-150",
+        "office_location": "Chicago, IL (Hybrid)",
+        "employment_status": "Active",
+        "employment_type": "Full-Time",
+        "level": "L5",
+        "level_rank": 5,
+        "reporting_line": {
+            "manager_id": "EMP_00419",
+            "manager_name": "Robert Hale",
+            "direct_reports_count": 0
+        },
+        "metadata_tags": [
+            "HR",
+            "People Ops",
+            "L5",
+            "Full-Time"
+        ]
+    },
+    {
+        "employee_id": "EMP_00419",
+        "first_name": "Robert",
+        "preferred_name": "Rob",
+        "last_name": "Hale",
+        "corporate_email": "r.hale@company.com",
+        "job_title": "VP of People",
+        "department": "Human Resources",
+        "cost_center": "HR-100",
+        "office_location": "Chicago, IL (On-site)",
+        "employment_status": "Active",
+        "employment_type": "Full-Time",
+        "level": "L9",
+        "level_rank": 9,
+        "reporting_line": {
+            "manager_id": "EMP_00001",
+            "manager_name": "Helena Brooks",
+            "direct_reports_count": 9
+        },
+        "metadata_tags": [
+            "HR",
+            "Leadership",
+            "L9",
+            "Full-Time"
+        ]
+    },
+    {
+        "employee_id": "EMP_38475",
+        "first_name": "Kevin",
+        "preferred_name": "Kevin",
+        "last_name": "Zhang",
+        "corporate_email": "k.zhang@company.com",
+        "job_title": "Security Engineer",
+        "department": "Information Security",
+        "cost_center": "SEC-220",
+        "office_location": "Remote (US)",
+        "employment_status": "Active",
+        "employment_type": "Full-Time",
+        "level": "L5",
+        "level_rank": 5,
+        "reporting_line": {
+            "manager_id": "EMP_29983",
+            "manager_name": "Fatima Al-Sayed",
+            "direct_reports_count": 0
+        },
+        "metadata_tags": [
+            "Security",
+            "L5",
+            "Full-Time"
+        ]
+    },
+    {
+        "employee_id": "EMP_29983",
+        "first_name": "Fatima",
+        "preferred_name": "Fatima",
+        "last_name": "Al-Sayed",
+        "corporate_email": "f.alsayed@company.com",
+        "job_title": "Chief Information Security Officer",
+        "department": "Information Security",
+        "cost_center": "SEC-200",
+        "office_location": "Boston, MA (On-site)",
+        "employment_status": "Active",
+        "employment_type": "Full-Time",
+        "level": "L9",
+        "level_rank": 9,
+        "reporting_line": {
+            "manager_id": "EMP_00001",
+            "manager_name": "Helena Brooks",
+            "direct_reports_count": 6
+        },
+        "metadata_tags": [
+            "Security",
+            "Leadership",
+            "L9",
+            "Full-Time"
+        ]
+    },
+    {
+        "employee_id": "EMP_00007",
+        "first_name": "Priya",
+        "preferred_name": "Priya",
+        "last_name": "Nair",
+        "corporate_email": "p.nair@company.com",
+        "job_title": "SVP of Engineering & Product",
+        "department": "Technology",
+        "cost_center": "TECH-010",
+        "office_location": "San Francisco, CA (On-site)",
+        "employment_status": "Active",
+        "employment_type": "Full-Time",
+        "level": "L10",
+        "level_rank": 10,
+        "reporting_line": {
+            "manager_id": "EMP_00001",
+            "manager_name": "Helena Brooks",
+            "direct_reports_count": 4
+        },
+        "metadata_tags": [
+            "Technology",
+            "Executive",
+            "L10",
+            "Full-Time"
+        ]
+    },
+    {
+        "employee_id": "EMP_00001",
+        "first_name": "Helena",
+        "preferred_name": "Helena",
+        "last_name": "Brooks",
+        "corporate_email": "h.brooks@company.com",
+        "job_title": "Chief Executive Officer",
+        "department": "Executive",
+        "cost_center": "EXEC-001",
+        "office_location": "San Francisco, CA (On-site)",
+        "employment_status": "Active",
+        "employment_type": "Full-Time",
+        "level": "L11",
+        "level_rank": 11,
+        "reporting_line": {
+            "manager_id": null,
+            "manager_name": "Board of Directors",
+            "direct_reports_count": 6
+        },
+        "metadata_tags": [
+            "Executive",
+            "Leadership",
+            "L11",
+            "Full-Time"
+        ]
+    },
+    {
+        "employee_id": "EMP_47112",
+        "first_name": "Carlos",
+        "preferred_name": "Carlos",
+        "last_name": "Mendoza",
+        "corporate_email": "c.mendoza@company.com",
+        "job_title": "Account Executive",
+        "department": "Sales",
+        "cost_center": "SAL-330",
+        "office_location": "Miami, FL (Hybrid)",
+        "employment_status": "Active",
+        "employment_type": "Full-Time",
+        "level": "L4",
+        "level_rank": 4,
+        "reporting_line": {
+            "manager_id": "EMP_20566",
+            "manager_name": "Sophie Laurent",
+            "direct_reports_count": 0
+        },
+        "metadata_tags": [
+            "Sales",
+            "L4",
+            "Full-Time"
+        ]
+    },
+    {
+        "employee_id": "EMP_20566",
+        "first_name": "Sophie",
+        "preferred_name": "Sophie",
+        "last_name": "Laurent",
+        "corporate_email": "s.laurent@company.com",
+        "job_title": "Regional Sales Director",
+        "department": "Sales",
+        "cost_center": "SAL-300",
+        "office_location": "Miami, FL (On-site)",
+        "employment_status": "Active",
+        "employment_type": "Full-Time",
+        "level": "L8",
+        "level_rank": 8,
+        "reporting_line": {
+            "manager_id": "EMP_00001",
+            "manager_name": "Helena Brooks",
+            "direct_reports_count": 11
+        },
+        "metadata_tags": [
+            "Sales",
+            "Leadership",
+            "L8",
+            "Full-Time"
+        ]
+    },
+    {
+        "employee_id": "EMP_93028",
+        "first_name": "Yuki",
+        "preferred_name": "Yuki",
+        "last_name": "Tanaka",
+        "corporate_email": "y.tanaka@company.com",
+        "job_title": "QA Engineer",
+        "department": "Payments Platform",
+        "cost_center": "ENG-511",
+        "office_location": "Portland, OR (Remote)",
+        "employment_status": "Active",
+        "employment_type": "Contractor",
+        "level": "L3",
+        "level_rank": 3,
+        "reporting_line": {
+            "manager_id": "EMP_33810",
+            "manager_name": "Elena Rossi",
+            "direct_reports_count": 0
+        },
+        "metadata_tags": [
+            "Engineering",
+            "Payments",
+            "QA",
+            "L3",
+            "Contractor"
+        ]
+    }
+]

@@ -1,22 +1,12 @@
 # ============================================================================
-#  Dockerfile for THIS directory's service: the INGESTION WORKER.
-#  Runs on AWS Lambda.
+#  IMAGE: LAMBDA · EMBEDDING · INGEST
+#  --------------------------------------------------------------------------
+#  This is the INGESTION WORKER image. In one glance:
 #
-#  It sits next to the code it builds -- app/ingestion/indexer.py is right
-#  here, and lambda_handler at the bottom of that file is the entrypoint.
-#
-#  Build from the REPO ROOT, because the image needs app/ and
-#  requirements.txt, and Docker can only copy from inside the build context:
-#
-#      docker build -f app/ingestion/Dockerfile -t rag-ingest .
-#                      ^ the recipe                  ^ the context (repo root)
-#
-#  Starts:  app/ingestion/indexer.py -> lambda_handler
-#
-#  Note what is NOT here: no port, no EXPOSE, no uvicorn, no appuser. Lambda
-#  supplies all of that. The base image below already has the Lambda runtime
-#  client as its ENTRYPOINT, which is why CMD is just the name of a Python
-#  function.
+#     Runs on  : AWS LAMBDA   (S3 upload trigger)
+#     Job      : EMBED + INGEST documents into the vector index
+#     Pipeline : load -> chunk -> Bedrock Titan EMBEDDING -> OpenSearch index
+#     Entry    : app/ingestion/indexer.py -> lambda_handler
 # ============================================================================
 
 FROM public.ecr.aws/lambda/python:3.12

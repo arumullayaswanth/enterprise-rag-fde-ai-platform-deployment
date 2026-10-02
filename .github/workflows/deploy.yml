@@ -1,0 +1,238 @@
+name: fde-rag-deployment
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write # required for AWS OIDC (no long-lived access keys)
+
+env:
+  # Region comes from a GitHub Actions variable, not hardcoded.
+  AWS_REGION: ${{ vars.AWS_REGION }}
+  TF_VERSION: 1.15.5
+  TF_IN_AUTOMATION: "true"
+  # Region reaches Terraform too.
+  TF_VAR_aws_region: ${{ vars.AWS_REGION }}
+
+# Two deploys must never race for the same state lock.
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  # =========================================================================
+  #  1. CHECKS -- no AWS account needed
+  # =========================================================================
+  checks:
+    name: checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Lint the Python
+        run: |
+          pip install ruff==0.8.4
+          ruff check app
+  # =========================================================================
+  #  2. DEPLOY -- build both images, then apply
+  # =========================================================================
+  deploy:
+    name: deploy
+    needs: checks
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    environment: prod
+    env:
+      # The commit SHA is the image tag, so the running code is never ambiguous.
+      TF_VAR_image_tag: ${{ github.sha }}
+    outputs:
+      web_url: ${{ steps.info.outputs.web_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check required config is set
+        run: |
+          if [ -z "${{ vars.AWS_REGION }}" ]; then
+            echo "::error::Set the AWS_REGION repository variable (e.g. us-east-1)."
+            exit 1
+          fi
+          if [ -z "${{ vars.TF_STATE_BUCKET }}" ]; then
+            echo "::error::Create an S3 bucket for Terraform state, then set the TF_STATE_BUCKET repository variable."
+            exit 1
+          fi
+          if [ -z "${{ vars.AWS_OIDC_ROLE_ARN }}" ]; then
+            echo "::error::Set the AWS_OIDC_ROLE_ARN variable to the IAM role GitHub Actions assumes via OIDC."
+            exit 1
+          fi
+
+      # OIDC: GitHub mints a short-lived token and assumes the role. No
+      # long-lived AWS access keys are stored in the repo.
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_OIDC_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: terraform init
+        run: |
+          terraform -chdir=terraform init -input=false \
+            -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}" \
+            -backend-config="region=$AWS_REGION"
+
+      # --------------------------------------------------------------------
+      # Step 1: the registries must exist before we can push to them, and the
+      # ECS task and Lambda both reference an image tag inside them. So apply
+      # just the two repositories first.
+      # --------------------------------------------------------------------
+      - name: Create the two ECR repositories
+        id: ecr
+        run: |
+          set -euo pipefail
+          terraform -chdir=terraform apply -input=false -auto-approve -lock-timeout=5m \
+            -target=module.ecr.aws_ecr_repository.api -target=module.ecr.aws_ecr_repository.ingest
+          echo "api=$(terraform -chdir=terraform output -raw api_repository_url)" >> "$GITHUB_OUTPUT"
+          echo "ingest=$(terraform -chdir=terraform output -raw ingest_repository_url)" >> "$GITHUB_OUTPUT"
+
+      # --------------------------------------------------------------------
+      # Step 2: one image per service, each built from the Dockerfile that
+      # sits next to its own code. `context: .` is the repo root, because both
+      # images COPY app/ and requirements.txt from there.
+      # --------------------------------------------------------------------
+      - uses: aws-actions/amazon-ecr-login@v2
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build and push the API image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: app/api/Dockerfile
+          push: true
+          tags: ${{ steps.ecr.outputs.api }}:${{ github.sha }}
+          cache-from: type=gha,scope=api
+          cache-to: type=gha,scope=api,mode=max
+
+      - name: Build and push the ingest image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: app/ingestion/Dockerfile
+          push: true
+          # Lambda requires a plain single-image manifest.
+          provenance: false
+          tags: ${{ steps.ecr.outputs.ingest }}:${{ github.sha }}
+          cache-from: type=gha,scope=ingest
+          cache-to: type=gha,scope=ingest,mode=max
+
+      # --------------------------------------------------------------------
+      # Step 3: everything else, now that both tags exist.
+      # The first run creates an OpenSearch domain, which takes 15-25 minutes.
+      # --------------------------------------------------------------------
+      - name: terraform apply
+        timeout-minutes: 45
+        run: terraform -chdir=terraform apply -input=false -auto-approve -lock-timeout=5m
+
+      - name: Wait for the API to come up
+        timeout-minutes: 20
+        run: |
+          aws ecs wait services-stable \
+            --cluster "$(terraform -chdir=terraform output -raw ecs_cluster_name)" \
+            --services "$(terraform -chdir=terraform output -raw ecs_service_name)"
+
+      # --------------------------------------------------------------------
+      # Step 4: fill the search index.
+      # Uploading fires the S3 event per file, but that cannot remove passages
+      # for files you deleted. So sync first, then one reindex call that drops
+      # the index and rebuilds it from whatever is in the bucket.
+      # --------------------------------------------------------------------
+      - name: Upload the sample documents
+        run: |
+          set -euo pipefail
+          BUCKET=$(terraform -chdir=terraform output -raw documents_bucket)
+          aws s3 sync sample-data/ "s3://${BUCKET}/uploads/" --size-only --delete
+          echo "BUCKET=${BUCKET}" >> "$GITHUB_ENV"
+
+      # The sync above fires one event-driven invocation per uploaded file,
+      # which saturates a low account concurrency limit. This call is the same
+      # function, so it gets ConcurrentInvocationLimitExceeded until those
+      # drain. Ride the throttling out rather than failing the deploy.
+      - name: Rebuild the search index
+        timeout-minutes: 20
+        env:
+          AWS_MAX_ATTEMPTS: "10"
+          AWS_RETRY_MODE: adaptive
+        run: |
+          set -euo pipefail
+          FUNCTION=$(terraform -chdir=terraform output -raw ingest_lambda_name)
+          ATTEMPTS=8
+
+          for attempt in $(seq 1 "$ATTEMPTS"); do
+            if aws lambda invoke \
+                 --function-name "$FUNCTION" \
+                 --cli-binary-format raw-in-base64-out \
+                 --payload "{\"reindex\":true,\"bucket\":\"${BUCKET}\",\"prefix\":\"uploads/\"}" \
+                 --cli-read-timeout 600 \
+                 result.json >/dev/null 2>invoke.err; then
+              break
+            fi
+
+            # Anything other than throttling is a real failure, so stop now.
+            if ! grep -qE 'TooManyRequestsException|ConcurrentInvocationLimitExceeded' invoke.err; then
+              cat invoke.err
+              echo "::error::lambda invoke failed"
+              exit 1
+            fi
+
+            if [ "$attempt" -eq "$ATTEMPTS" ]; then
+              cat invoke.err
+              echo "::error::Still throttled after ${ATTEMPTS} attempts. Check the account's Lambda concurrent execution limit."
+              exit 1
+            fi
+
+            echo "attempt ${attempt}: throttled, waiting for concurrency to free up"
+            sleep 30
+          done
+
+          cat result.json | jq .
+
+          # A Lambda error comes back as an errorMessage key, not a bad exit code.
+          if jq -e 'has("errorMessage")' result.json >/dev/null; then
+            echo "::error::Ingest failed: $(jq -r .errorMessage result.json)"
+            exit 1
+          fi
+          if [ "$(jq -r '.indexed // 0' result.json)" -lt 1 ]; then
+            echo "::error::No passages were indexed"
+            exit 1
+          fi
+          echo "Indexed $(jq -r .indexed result.json) passages."
+
+      - name: Show where it is
+        id: info
+        run: |
+          set -euo pipefail
+          WEB_URL=$(terraform -chdir=terraform output -raw web_url)
+          echo "web_url=${WEB_URL}" >> "$GITHUB_OUTPUT"
+          echo "$WEB_URL"
+          # Annotation + summary so the URL is visible on the run page itself,
+          # not only inside this step's collapsed log.
+          echo "::notice title=Web URL::${WEB_URL}"
+          echo "${WEB_URL}" >> "$GITHUB_STEP_SUMMARY"
+
+      # Last stage of the pipeline: nothing but the URL, in a banner that is
+      # easy to spot when scrolling the log.
+      - name: Web URL
+        run: |
+          echo "=============================================================="
+          echo "  WEB URL: ${{ steps.info.outputs.web_url }}"
+          echo "=============================================================="
