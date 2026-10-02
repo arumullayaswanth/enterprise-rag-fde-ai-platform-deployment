@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Yash Academy — RAG Architecture</title>
+    <style>
+        :root {
+            --bg: #060810;
+            --panel: #0c111d;
+            --glass: rgba(20, 24, 38, .7);
+            --line: rgba(150, 160, 200, .22);
+            --line-strong: rgba(150, 160, 200, .42);
+            --ink: #eef2fb;
+            --ink-soft: #a9b4cc;
+            --ink-faint: #76829c;
+            --violet: #8b5cf6;
+            --violet-2: #a78bfa;
+            --cyan: #22d3ee;
+            --pink: #ec4899;
+            --green: #34d399;
+            --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+            --sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--ink);
+            font: 15px/1.6 var(--sans);
+            -webkit-font-smoothing: antialiased
+        }
+
+        .backdrop {
+            position: fixed;
+            inset: 0;
+            z-index: -2;
+            background: radial-gradient(1000px 500px at 12% -10%, rgba(99, 102, 241, .18), transparent 60%), radial-gradient(900px 480px at 95% 8%, rgba(34, 211, 238, .12), transparent 55%), var(--bg)
+        }
+
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 30;
+            background: rgba(8, 10, 18, .8);
+            backdrop-filter: blur(14px);
+            border-bottom: 1px solid var(--line)
+        }
+
+        .topbar-inner {
+            max-width: 1240px;
+            margin: 0 auto;
+            padding: .8rem 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 1.2rem
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: .65rem
+        }
+
+        .brand-logo {
+            width: 40px;
+            height: 40px;
+            border-radius: 11px;
+            background: linear-gradient(135deg, var(--violet), var(--pink));
+            display: grid;
+            place-items: center;
+            font-weight: 800;
+            color: #fff;
+            box-shadow: 0 0 26px rgba(139, 92, 246, .5)
+        }
+
+        .brand-name {
+            font-weight: 800;
+            letter-spacing: -.02em
+        }
+
+        .brand-name span {
+            color: var(--violet-2)
+        }
+
+        .brand-sub {
+            font-size: .62rem;
+            letter-spacing: .2em;
+            text-transform: uppercase;
+            color: var(--ink-faint)
+        }
+
+        .tabs {
+            display: flex;
+            gap: .3rem;
+            margin-left: .8rem;
+            padding: .25rem;
+            background: var(--glass);
+            border: 1px solid var(--line);
+            border-radius: 999px
+        }
+
+        .tab {
+            font: inherit;
+            font-weight: 600;
+            font-size: .88rem;
+            color: var(--ink-soft);
+            background: transparent;
+            border: none;
+            border-radius: 999px;
+            padding: .45rem 1rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: .45rem;
+            transition: all .15s
+        }
+
+        .tab:hover {
+            color: var(--ink)
+        }
+
+        .tab.active {
+            color: #fff;
+            background: linear-gradient(100deg, var(--violet), #6366f1);
+            box-shadow: 0 6px 16px rgba(139, 92, 246, .4)
+        }
+
+        .tab svg {
+            width: 16px;
+            height: 16px
+        }
+
+        main {
+            max-width: 1240px;
+            margin: 0 auto;
+            padding: 1.6rem 1.3rem 4rem
+        }
+
+        .view {
+            display: none
+        }
+
+        .view.active {
+            display: block;
+            animation: fade .4s ease both
+        }
+
+        @keyframes fade {
+            from {
+                opacity: 0;
+                transform: translateY(10px)
+            }
+
+            to {
+                opacity: 1;
+                transform: none
+            }
+        }
+
+        h1 {
+            font-size: clamp(1.5rem, 3.5vw, 2.1rem);
+            font-weight: 800;
+            letter-spacing: -.03em;
+            margin: 0 0 .3rem
+        }
+
+        h1 span {
+            background: linear-gradient(100deg, var(--violet-2), var(--cyan));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent
+        }
+
+        .lead {
+            color: var(--ink-soft);
+            margin: 0 0 1.5rem;
+            max-width: 70ch
+        }
+
+        .diagram {
+            background: #05070e;
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            padding: 1.4rem;
+            overflow-x: auto
+        }
+
+        .stage {
+            position: relative;
+            width: 1180px;
+            height: 620px;
+            margin: 0 auto
+        }
+
+        /* phase bands */
+        .band {
+            position: absolute;
+            left: 0;
+            right: 0;
+            border-radius: 14px
+        }
+
+        .band.ingest {
+            top: 10px;
+            height: 250px;
+            background: rgba(34, 211, 238, .05);
+            border: 1px dashed rgba(34, 211, 238, .3)
+        }
+
+        .band.query {
+            top: 300px;
+            height: 300px;
+            background: rgba(236, 72, 153, .05);
+            border: 1px dashed rgba(236, 72, 153, .3)
+        }
+
+        .band-tag {
+            position: absolute;
+            top: 10px;
+            left: 16px;
+            font-size: .72rem;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            font-weight: 700
+        }
+
+        .band.ingest .band-tag {
+            color: var(--cyan)
+        }
+
+        .band.query .band-tag {
+            color: var(--pink)
+        }
+
+        .node {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 7px;
+            text-align: center;
+            width: 120px
+        }
+
+        .tile {
+            width: 66px;
+            height: 66px;
+            border-radius: 16px;
+            display: grid;
+            place-items: center;
+            background: #fff;
+            border: 1px solid var(--line);
+            padding: 7px;
+            box-shadow: 0 8px 22px rgba(0, 0, 0, .45)
+        }
+
+        .tile img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block
+        }
+
+        .node .label {
+            font-size: .8rem;
+            font-weight: 700
+        }
+
+        .node .sub {
+            font-size: .68rem;
+            color: var(--ink-faint);
+            max-width: 130px
+        }
+
+        .chip {
+            position: absolute;
+            border: 1px solid var(--line-strong);
+            border-radius: 9px;
+            padding: .4rem .7rem;
+            background: var(--panel);
+            font-size: .76rem;
+            text-align: center
+        }
+
+        /* wires + moving dots (the "gif" movement) */
+        .wires {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: visible
+        }
+
+        .wire {
+            stroke: var(--line-strong);
+            stroke-width: 2.5;
+            fill: none;
+            marker-end: url(#ah)
+        }
+
+        .flowdot {
+            r: 5;
+            fill: var(--violet-2);
+            filter: drop-shadow(0 0 6px var(--violet))
+        }
+
+        .badge {
+            font-family: var(--mono);
+            font-size: .78rem;
+            font-weight: 700;
+            fill: var(--violet-2)
+        }
+
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .7rem 1.4rem;
+            margin-top: 1.2rem;
+            font-size: .84rem;
+            color: var(--ink-soft)
+        }
+
+        .legend span {
+            display: inline-flex;
+            align-items: center;
+            gap: .4rem
+        }
+
+        .legend .n {
+            width: 20px;
+            height: 20px;
+            border-radius: 6px;
+            background: linear-gradient(100deg, var(--violet), #6366f1);
+            color: #fff;
+            display: grid;
+            place-items: center;
+            font-size: .66rem;
+            font-weight: 700;
+            font-family: var(--mono)
+        }
+
+        .steps {
+            display: grid;
+            gap: .8rem
+        }
+
+        .srow {
+            display: grid;
+            grid-template-columns: 44px 1fr;
+            gap: 1rem;
+            align-items: center;
+            background: var(--glass);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: .9rem 1.1rem
+        }
+
+        .snum {
+            width: 38px;
+            height: 38px;
+            border-radius: 11px;
+            display: grid;
+            place-items: center;
+            font-weight: 800;
+            color: #fff;
+            background: linear-gradient(135deg, var(--violet), #6366f1)
+        }
+
+        .srow h3 {
+            margin: 0;
+            font-size: 1rem
+        }
+
+        .srow p {
+            margin: .15rem 0 0;
+            color: var(--ink-soft);
+            font-size: .88rem
+        }
+
+        /* ===== example (end-to-end scenario) ===== */
+        .ex-doc {
+            display: inline-block;
+            margin: 0 0 1.2rem;
+            padding: .5rem .9rem;
+            border: 1px solid var(--line-strong);
+            border-radius: 10px;
+            background: var(--glass);
+            font-size: .9rem;
+        }
+
+        .ex-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        @media (max-width:760px) {
+            .ex-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .ex-card {
+            background: var(--glass);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 1rem 1.1rem;
+            animation: fade .4s ease both;
+        }
+
+        .ex-card.ingest {
+            border-left: 3px solid var(--cyan);
+        }
+
+        .ex-card.query {
+            border-left: 3px solid var(--pink);
+        }
+
+        .ex-card.span2 {
+            grid-column: 1 / -1;
+        }
+
+        .ex-head {
+            display: flex;
+            align-items: center;
+            gap: .55rem;
+            font-weight: 800;
+            font-size: 1.02rem;
+            margin-bottom: .7rem;
+        }
+
+        .ex-num {
+            width: 28px;
+            height: 28px;
+            flex: 0 0 auto;
+            border-radius: 9px;
+            display: grid;
+            place-items: center;
+            font-size: .82rem;
+            color: #fff;
+            background: linear-gradient(135deg, var(--violet), #6366f1);
+        }
+
+        .ex-pipe {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            flex-wrap: nowrap;
+            font-family: var(--mono);
+            font-size: .82rem;
+        }
+
+        .ex-pipe.wrap {
+            flex-wrap: wrap;
+        }
+
+        .ex-box {
+            padding: .4rem .7rem;
+            border-radius: 8px;
+            border: 1px solid var(--line-strong);
+            background: var(--panel);
+            white-space: nowrap;
+        }
+
+        .ex-box.accent {
+            border-color: var(--violet);
+            color: var(--violet-2);
+        }
+
+        .ex-box.store,
+        .store {
+            border-color: rgba(34, 211, 238, .4);
+            color: var(--cyan);
+        }
+
+        .ex-arr {
+            color: var(--ink-faint);
+            font-weight: 700;
+        }
+
+        .accent {
+            color: var(--violet-2);
+        }
+
+        .ex-rows {
+            display: flex;
+            flex-direction: column;
+            gap: .4rem;
+            font-family: var(--mono);
+            font-size: .82rem;
+            color: var(--ink-soft);
+        }
+
+        .ex-rows .store {
+            display: inline-block;
+            padding: .25rem .6rem;
+            border: 1px solid rgba(34, 211, 238, .4);
+            border-radius: 7px;
+            width: max-content;
+        }
+
+        .ex-rows b {
+            color: var(--ink);
+        }
+
+        .ex-tag {
+            display: inline-block;
+            font-family: var(--mono);
+            font-size: .74rem;
+            padding: .22rem .5rem;
+            margin: 0 .25rem .25rem 0;
+            border-radius: 7px;
+            border: 1px solid var(--line);
+            background: rgba(150, 130, 255, .08);
+            color: var(--ink-soft);
+        }
+
+        .ex-tag.hot {
+            border-color: var(--pink);
+            color: #fda4d4;
+            background: rgba(236, 72, 153, .1);
+        }
+
+        .ex-dots {
+            color: var(--ink-faint);
+        }
+
+        .ex-q {
+            font-weight: 700;
+            color: #fff;
+            padding: .55rem .8rem;
+            border-left: 3px solid var(--pink);
+            background: rgba(236, 72, 153, .08);
+            border-radius: 0 10px 10px 0;
+        }
+
+        .ex-answer {
+            margin-top: .7rem;
+            padding: .8rem 1rem;
+            border-radius: 12px;
+            border: 1px solid rgba(52, 211, 153, .3);
+            background: rgba(52, 211, 153, .08);
+            color: #c7f9e5;
+            font-size: .92rem;
+        }
+
+        /* ===== why opensearch ===== */
+        .why-title {
+            margin: 2.4rem 0 .3rem;
+            font-size: 1.4rem;
+            font-weight: 800;
+            letter-spacing: -.02em;
+        }
+
+        .why-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin: 1.2rem 0;
+        }
+
+        @media (max-width:760px) {
+            .why-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .why-card {
+            background: var(--glass);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 1.1rem 1.2rem;
+        }
+
+        .why-card.ok {
+            border-color: rgba(52, 211, 153, .35);
+        }
+
+        .why-card p {
+            color: var(--ink-soft);
+            margin: .5rem 0 0;
+            font-size: .9rem;
+        }
+
+        .why-card b {
+            color: var(--ink);
+        }
+
+        .why-h {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            font-weight: 800;
+        }
+
+        .why-ic {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            font-size: .8rem;
+            font-weight: 800;
+        }
+
+        .why-ic.bad {
+            background: rgba(251, 113, 133, .18);
+            color: #fb7185;
+        }
+
+        .why-ic.good {
+            background: rgba(52, 211, 153, .18);
+            color: var(--green);
+        }
+
+        .why-flow {
+            display: flex;
+            flex-direction: column;
+            gap: .3rem;
+            margin: 1.2rem 0;
+        }
+
+        .why-step {
+            display: flex;
+            align-items: flex-start;
+            gap: .7rem;
+            background: var(--glass);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: .8rem 1rem;
+            font-size: .9rem;
+        }
+
+        .why-step b {
+            color: var(--ink);
+        }
+
+        .why-arr {
+            text-align: center;
+            color: var(--violet-2);
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .why-hits {
+            display: flex;
+            flex-direction: column;
+            gap: .35rem;
+            margin-top: .5rem;
+            font-size: .82rem;
+            color: var(--ink-soft);
+        }
+
+        .mono {
+            font-family: var(--mono);
+            color: var(--cyan);
+        }
+
+        .why-note {
+            margin-top: 1.2rem;
+            padding: .9rem 1.1rem;
+            border-radius: 12px;
+            border: 1px solid var(--line-strong);
+            background: rgba(139, 92, 246, .08);
+            font-size: .9rem;
+            color: var(--ink-soft);
+        }
+
+        .why-note b {
+            color: var(--violet-2);
+        }
+
+        footer {
+            text-align: center;
+            color: var(--ink-faint);
+            font-size: .8rem;
+            padding: 1.5rem;
+            border-top: 1px solid var(--line)
+        }
+
+        @media (prefers-reduced-motion:reduce) {
+            .flowdot {
+                display: none
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="backdrop"></div>
+
+    <header class="topbar">
+        <div class="topbar-inner">
+            <div class="brand">
+                <div class="brand-logo">Y</div>
+                <div>
+                    <div class="brand-name">Yash <span>Academy</span></div>
+                    <div class="brand-sub">RAG Platform</div>
+                </div>
+            </div>
+            <div class="tabs">
+                <button class="tab active" data-view="arch">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <rect x="3" y="3" width="7" height="7" rx="1" />
+                        <rect x="14" y="3" width="7" height="7" rx="1" />
+                        <rect x="3" y="14" width="7" height="7" rx="1" />
+                        <path d="M17.5 14v7M14 17.5h7" />
+                    </svg>
+                    Architecture
+                </button>
+                <button class="tab" data-view="flow">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <line x1="4" y1="6" x2="20" y2="6" />
+                        <line x1="4" y1="12" x2="20" y2="12" />
+                        <line x1="4" y1="18" x2="14" y2="18" />
+                    </svg>
+                    Flow
+                </button>
+                <button class="tab" data-view="example">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                        <path d="M14 2v6h6M9 13h6M9 17h4" />
+                    </svg>
+                    Example
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section class="view active" id="arch">
+            <h1>RAG <span>Architecture</span> — follow the moving dots 1 → 5</h1>
+            <p class="lead">Top band = ingestion (runs once when a document is uploaded). Bottom band = query (runs
+                every time a user asks). Each arrow carries a glowing dot so you can watch the data move.</p>
+
+            <div class="diagram">
+                <div class="stage">
+                    <div class="band ingest"><span class="band-tag">① Ingestion — document → vector index</span></div>
+                    <div class="band query"><span class="band-tag">② Query — question → answer</span></div>
+
+                    <!-- INGESTION ROW: S3 -> Lambda -> Bedrock embed -> OpenSearch -->
+                    <div class="node" style="left:40px;top:95px;">
+                        <div class="tile"><img
+                                src="https://awsfundamentals.com/assets/aws-icons/Arch_Amazon-Simple-Storage-Service_64.svg"
+                                alt="S3"></div>
+                        <div class="label">S3</div>
+                        <div class="sub">documents land here</div>
+                    </div>
+                    <div class="node" style="left:330px;top:95px;">
+                        <div class="tile"><img src="https://awsfundamentals.com/assets/aws-icons/Arch_AWS-Lambda_64.svg"
+                                alt="Lambda"></div>
+                        <div class="label">Lambda</div>
+                        <div class="sub">load + chunk</div>
+                    </div>
+                    <div class="node" style="left:620px;top:95px;">
+                        <div class="tile"><img
+                                src="https://awsfundamentals.com/assets/aws-icons/Arch_Amazon-Bedrock_64.svg"
+                                alt="Bedrock"></div>
+                        <div class="label">Bedrock Titan</div>
+                        <div class="sub">chunk → vector</div>
+                    </div>
+                    <div class="node" style="left:920px;top:95px;">
+                        <div class="tile"><img
+                                src="https://awsfundamentals.com/assets/aws-icons/Arch_Amazon-OpenSearch-Service_64.svg"
+                                alt="OpenSearch"></div>
+                        <div class="label">OpenSearch</div>
+                        <div class="sub">stores text + vector</div>
+                    </div>
+
+                    <!-- QUERY ROW: User -> App -> Lambda(embed) -> OpenSearch -> LLM -> back -->
+                    <div class="node" style="left:40px;top:400px;">
+                        <div class="tile" style="background:#06202b;border-color:rgba(34,211,238,.4)">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="1.8">
+                                <circle cx="12" cy="8" r="4" />
+                                <path d="M4 21c0-4 3.6-7 8-7s8 3 8 7" />
+                            </svg>
+                        </div>
+                        <div class="label">User</div>
+                        <div class="sub">"info about Yaswanth?"</div>
+                    </div>
+                    <div class="node" style="left:300px;top:400px;">
+                        <div class="tile"><img
+                                src="https://awsfundamentals.com/assets/aws-icons/Arch_Amazon-Elastic-Container-Service_64.svg"
+                                alt="App on ECS"></div>
+                        <div class="label">App (ECS)</div>
+                        <div class="sub">FastAPI + React</div>
+                    </div>
+                    <div class="node" style="left:560px;top:400px;">
+                        <div class="tile"><img src="https://awsfundamentals.com/assets/aws-icons/Arch_AWS-Lambda_64.svg"
+                                alt="Lambda embed"></div>
+                        <div class="label">Bedrock embed</div>
+                        <div class="sub">question → query vector</div>
+                    </div>
+                    <div class="node" style="left:830px;top:400px;">
+                        <div class="tile"><img
+                                src="https://awsfundamentals.com/assets/aws-icons/Arch_Amazon-OpenSearch-Service_64.svg"
+                                alt="OpenSearch search"></div>
+                        <div class="label">OpenSearch</div>
+                        <div class="sub">top-K similar chunks</div>
+                    </div>
+                    <div class="node" style="left:1040px;top:400px;">
+                        <div class="tile"><img
+                                src="https://awsfundamentals.com/assets/aws-icons/Arch_Amazon-Bedrock_64.svg" alt="LLM">
+                        </div>
+                        <div class="label">LLM</div>
+                        <div class="sub">writes the answer</div>
+                    </div>
+
+                    <svg class="wires" viewBox="0 0 1180 620" preserveAspectRatio="none">
+                        <defs>
+                            <marker id="ah" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+                                <path d="M0,0 L9,4.5 L0,9 Z" fill="#a78bfa" />
+                            </marker>
+                        </defs>
+
+                        <!-- ingestion wires -->
+                        <path id="w-i1" class="wire" d="M172,128 L326,128" />
+                        <path id="w-i2" class="wire" d="M462,128 L616,128" />
+                        <path id="w-i3" class="wire" d="M752,128 L916,128" />
+
+                        <!-- query wires -->
+                        <path id="w-q1" class="wire" d="M172,433 L296,433" />
+                        <path id="w-q2" class="wire" d="M432,433 L556,433" />
+                        <path id="w-q3" class="wire" d="M696,433 L826,433" />
+                        <path id="w-q4" class="wire" d="M966,433 L1036,433" />
+                        <!-- answer returns to app -->
+                        <path id="w-q5" class="wire" d="M1080,470 C1080,560 420,560 360,475" />
+
+                        <!-- step badges -->
+                        <text class="badge" x="235" y="420">1</text>
+                        <text class="badge" x="490" y="420">2</text>
+                        <text class="badge" x="755" y="420">3</text>
+                        <text class="badge" x="995" y="420">4</text>
+                        <text class="badge" x="700" y="585">5</text>
+
+                        <!-- moving dots -->
+                        <circle class="flowdot">
+                            <animateMotion dur="2s" repeatCount="indefinite">
+                                <mpath href="#w-q1" />
+                            </animateMotion>
+                        </circle>
+                        <circle class="flowdot">
+                            <animateMotion dur="2s" begin="0.4s" repeatCount="indefinite">
+                                <mpath href="#w-q2" />
+                            </animateMotion>
+                        </circle>
+                        <circle class="flowdot">
+                            <animateMotion dur="2s" begin="0.8s" repeatCount="indefinite">
+                                <mpath href="#w-q3" />
+                            </animateMotion>
+                        </circle>
+                        <circle class="flowdot">
+                            <animateMotion dur="2s" begin="1.2s" repeatCount="indefinite">
+                                <mpath href="#w-q4" />
+                            </animateMotion>
+                        </circle>
+                        <circle class="flowdot" style="fill:var(--green)">
+                            <animateMotion dur="2.4s" begin="1.6s" repeatCount="indefinite">
+                                <mpath href="#w-q5" />
+                            </animateMotion>
+                        </circle>
+                        <circle class="flowdot" style="fill:var(--cyan)">
+                            <animateMotion dur="2.4s" repeatCount="indefinite">
+                                <mpath href="#w-i1" />
+                            </animateMotion>
+                        </circle>
+                        <circle class="flowdot" style="fill:var(--cyan)">
+                            <animateMotion dur="2.4s" begin="0.6s" repeatCount="indefinite">
+                                <mpath href="#w-i2" />
+                            </animateMotion>
+                        </circle>
+                        <circle class="flowdot" style="fill:var(--cyan)">
+                            <animateMotion dur="2.4s" begin="1.2s" repeatCount="indefinite">
+                                <mpath href="#w-i3" />
+                            </animateMotion>
+                        </circle>
+                    </svg>
+                </div>
+            </div>
+
+            <div class="legend">
+                <span><span class="n">1</span> User asks the App</span>
+                <span><span class="n">2</span> App → Bedrock embeds the question</span>
+                <span><span class="n">3</span> Query vector searches OpenSearch</span>
+                <span><span class="n">4</span> Top-K chunks go to the LLM</span>
+                <span><span class="n">5</span> LLM's grounded answer returns to the user</span>
+            </div>
+        </section>
+
+        <section class="view" id="flow">
+            <h1>Step <span>by step</span></h1>
+            <p class="lead">The same journey, written out plainly.</p>
+            <div class="steps">
+                <div class="srow">
+                    <div class="snum">1</div>
+                    <div>
+                        <h3>Upload &amp; chunk</h3>
+                        <p>Documents land in S3; a Lambda splits them into small chunks.</p>
+                    </div>
+                </div>
+                <div class="srow">
+                    <div class="snum">2</div>
+                    <div>
+                        <h3>Embed</h3>
+                        <p>Amazon Bedrock (Titan) turns each chunk into a vector.</p>
+                    </div>
+                </div>
+                <div class="srow">
+                    <div class="snum">3</div>
+                    <div>
+                        <h3>Store</h3>
+                        <p>Chunk text + vector are saved in the OpenSearch vector index.</p>
+                    </div>
+                </div>
+                <div class="srow">
+                    <div class="snum">4</div>
+                    <div>
+                        <h3>Ask</h3>
+                        <p>A user asks a question; it is embedded into a query vector.</p>
+                    </div>
+                </div>
+                <div class="srow">
+                    <div class="snum">5</div>
+                    <div>
+                        <h3>Search</h3>
+                        <p>OpenSearch returns the Top-K most similar chunks.</p>
+                    </div>
+                </div>
+                <div class="srow">
+                    <div class="snum">6</div>
+                    <div>
+                        <h3>Answer</h3>
+                        <p>The LLM reads those chunks and writes a grounded, cited answer.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===================== EXAMPLE (end-to-end scenario) ===================== -->
+        <section class="view" id="example">
+            <h1>End-to-End <span>Example</span> — "What is Amazon S3?"</h1>
+            <p class="lead">A single AWS documentation PDF goes in; a grounded answer comes out. Steps 1–4 happen once
+                (ingestion). Steps 5–9 happen every time someone asks.</p>
+
+            <div class="ex-doc">📄 <code>aws-s3-documentation.pdf</code></div>
+
+            <div class="ex-grid">
+                <!-- 1 -->
+                <div class="ex-card ingest">
+                    <div class="ex-head"><span class="ex-num">1</span> Load</div>
+                    <div class="ex-pipe"><span class="ex-box">PDF</span><span class="ex-arr">↓</span><span
+                            class="ex-box accent">Document Loader</span></div>
+                </div>
+                <!-- 2 -->
+                <div class="ex-card ingest">
+                    <div class="ex-head"><span class="ex-num">2</span> Split</div>
+                    <div class="ex-pipe wrap">
+                        <span class="ex-box">PDF</span><span class="ex-arr">↓</span>
+                        <span class="ex-tag">Chunk 1</span><span class="ex-tag">Chunk 2</span><span class="ex-tag">Chunk
+                            3</span><span class="ex-dots">…</span><span class="ex-tag">Chunk
+                            100</span>
+                    </div>
+                </div>
+                <!-- 3 -->
+                <div class="ex-card ingest">
+                    <div class="ex-head"><span class="ex-num">3</span> Embed</div>
+                    <div class="ex-rows">
+                        <div>Chunk 1 <span class="ex-arr">→</span> <span class="accent">Embedding</span> <span
+                                class="ex-arr">→</span> Vector 1</div>
+                        <div>Chunk 2 <span class="ex-arr">→</span> <span class="accent">Embedding</span> <span
+                                class="ex-arr">→</span> Vector 2</div>
+                        <div class="ex-dots">… up to Chunk 100 → Vector 100</div>
+                    </div>
+                </div>
+                <!-- 4 -->
+                <div class="ex-card ingest">
+                    <div class="ex-head"><span class="ex-num">4</span> Store</div>
+                    <div class="ex-rows">
+                        <div class="store">OpenSearch</div>
+                        <div>Chunk 1 + Vector 1</div>
+                        <div>Chunk 2 + Vector 2</div>
+                        <div class="ex-dots">… Chunk 100 + Vector 100</div>
+                    </div>
+                </div>
+                <!-- 5 -->
+                <div class="ex-card query">
+                    <div class="ex-head"><span class="ex-num">5</span> User Question</div>
+                    <div class="ex-q">"What is Amazon S3?"</div>
+                </div>
+                <!-- 6 -->
+                <div class="ex-card query">
+                    <div class="ex-head"><span class="ex-num">6</span> Embed Question</div>
+                    <div class="ex-pipe"><span class="ex-box">Question</span><span class="ex-arr">↓</span><span
+                            class="ex-box accent">Titan Embedding</span><span class="ex-arr">↓</span><span
+                            class="ex-box">Query Vector</span></div>
+                </div>
+                <!-- 7 -->
+                <div class="ex-card query">
+                    <div class="ex-head"><span class="ex-num">7</span> Search</div>
+                    <div class="ex-pipe wrap"><span class="ex-box">Query Vector</span><span class="ex-arr">↓</span><span
+                            class="ex-box store">OpenSearch</span><span class="ex-arr">↓</span><span class="ex-box">Top
+                            3
+                            chunks</span></div>
+                </div>
+                <!-- 8 -->
+                <div class="ex-card query">
+                    <div class="ex-head"><span class="ex-num">8</span> Build Prompt</div>
+                    <div class="ex-rows">
+                        <div><b>Context:</b> <span class="ex-tag hot">Chunk 7</span><span class="ex-tag hot">Chunk
+                                2</span><span class="ex-tag hot">Chunk 15</span></div>
+                        <div><b>Question:</b> What is Amazon S3?</div>
+                    </div>
+                </div>
+                <!-- 9 -->
+                <div class="ex-card query span2">
+                    <div class="ex-head"><span class="ex-num">9</span> Generate</div>
+                    <div class="ex-pipe"><span class="ex-box">Prompt</span><span class="ex-arr">↓</span><span
+                            class="ex-box accent">Bedrock LLM</span><span class="ex-arr">↓</span><span class="ex-box"
+                            style="border-color:var(--green);color:var(--green)">Final Answer</span></div>
+                    <div class="ex-answer">Amazon S3 is an AWS object storage service that stores data as objects inside
+                        buckets and offers multiple storage classes for different access needs.</div>
+                </div>
+            </div>
+
+            <!-- Why OpenSearch -->
+            <h2 class="why-title">Why do we need OpenSearch?</h2>
+            <p class="lead">The embedding model only turns text into numbers. Something has to <b>keep</b> those vectors
+                and <b>find</b> the closest ones fast. That is OpenSearch. Follow the same question through it.</p>
+
+            <div class="why-grid">
+                <div class="why-card">
+                    <div class="why-h"><span class="why-ic bad">✕</span> Without OpenSearch</div>
+                    <p>You would hold all <b>100</b> vectors in memory and compare the query against every one on each
+                        request — slow, and lost the moment the app restarts. And you would still need the original
+                        chunk <i>text</i> to send to the LLM, which a bare vector does not carry.</p>
+                </div>
+                <div class="why-card ok">
+                    <div class="why-h"><span class="why-ic good">✓</span> With OpenSearch</div>
+                    <p>It <b>stores</b> each chunk's text + vector together, runs <b>k-NN similarity search</b> in
+                        milliseconds, scales past millions of chunks, and hands back the actual text — so the LLM gets
+                        real context, not raw numbers.</p>
+                </div>
+            </div>
+
+            <div class="why-flow">
+                <div class="why-step">
+                    <span class="ex-num">1</span>
+                    <div><b>Query vector arrives</b><br><span class="mono">[0.11, 0.22, 0.54, …]</span></div>
+                </div>
+                <div class="why-arr">↓</div>
+                <div class="why-step">
+                    <span class="ex-num">2</span>
+                    <div><b>OpenSearch k-NN compares</b> it to all stored vectors and ranks them by similarity score
+                    </div>
+                </div>
+                <div class="why-arr">↓</div>
+                <div class="why-step">
+                    <span class="ex-num">3</span>
+                    <div><b>Top matches come back with their text</b>
+                        <div class="why-hits">
+                            <span>Chunk 7 — <span class="mono">0.92</span> — "Amazon S3 is an object storage
+                                service…"</span>
+                            <span>Chunk 2 — <span class="mono">0.88</span> — "S3 stores data as objects in
+                                buckets…"</span>
+                            <span>Chunk 15 — <span class="mono">0.83</span> — "S3 offers multiple storage
+                                classes…"</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="why-arr">↓</div>
+                <div class="why-step">
+                    <span class="ex-num">4</span>
+                    <div><b>That text becomes the LLM's context</b> — the model answers only from these retrieved chunks
+                    </div>
+                </div>
+            </div>
+
+            <div class="why-note">In one line: <b>Embedding</b> = turn meaning into numbers · <b>OpenSearch</b> = store
+                the numbers and find the closest ones · <b>LLM</b> = write the answer from what OpenSearch returned.
+            </div>
+        </section>
+    </main>
+
+    <footer>Yash Academy · Enterprise RAG Platform</footer>
+
+    <script>
+        const tabs = document.querySelectorAll(".tab"), views = document.querySelectorAll(".view");
+        tabs.forEach(t => t.addEventListener("click", () => {
+            tabs.forEach(x => x.classList.remove("active")); views.forEach(v => v.classList.remove("active"));
+            t.classList.add("active"); document.getElementById(t.dataset.view).classList.add("active");
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        }));
+    </script>
+</body>
+
+</html>
