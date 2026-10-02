@@ -1,9 +1,8 @@
-name: deploy-architecture-pages
+name: deploy-architecture-page
 
-# Publishes architecture-animated.html to GitHub Pages by pushing the built
-# site to a gh-pages branch. Uses peaceiris/actions-gh-pages, which deploys
-# with the automatic GITHUB_TOKEN and needs no manual Pages setup or the
-# Pages API that requires elevated permissions.
+# Keeps the repo-root index.html in sync with architecture-animated.html so
+# GitHub Pages (which serves this branch's root) shows the architecture page
+# instead of the README. .nojekyll stops Jekyll from reprocessing the HTML.
 on:
   push:
     branches: [prod]
@@ -12,39 +11,39 @@ on:
       - ".github/workflows/pages.yml"
   workflow_dispatch:
 
-# Pushing the gh-pages branch only needs write access to repo contents.
 permissions:
   contents: write
 
 concurrency:
-  group: pages
+  group: pages-sync
   cancel-in-progress: false
 
 jobs:
-  deploy:
-    name: build-and-deploy
+  sync-index:
+    name: sync-index
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      # Assemble the site: serve the architecture page as the site index.
-      - name: Build the site folder
+      - name: Sync index.html from architecture page
         run: |
-          mkdir -p _site
-          cp architecture-animated.html _site/index.html
+          cp architecture-animated.html index.html
+          touch .nojekyll
 
-      - name: Deploy to gh-pages branch
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./_site
-          publish_branch: gh-pages
+      - name: Commit if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet index.html .nojekyll; then
+            echo "index.html already up to date."
+          else
+            git add index.html .nojekyll
+            git commit -m "pages: sync root index.html with architecture page [skip ci]"
+            git push origin HEAD:prod
+          fi
 
-      # Print the live URL in the run summary and as a notice, so the link is
-      # easy to find on the Actions run page.
-      - name: Show the page URL
+      - name: Show URL
         run: |
           URL="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/"
           echo "::notice title=Page URL::${URL}"
-          echo "### Architecture page" >> "$GITHUB_STEP_SUMMARY"
           echo "[$URL]($URL)" >> "$GITHUB_STEP_SUMMARY"
