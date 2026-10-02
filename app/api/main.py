@@ -24,8 +24,10 @@ a common mistake:
 from __future__ import annotations
 
 import hmac
+import json
 import logging
 import os
+from functools import lru_cache
 from pathlib import Path
 
 from fastapi import Depends, FastAPI, Header, HTTPException, status
@@ -128,9 +130,6 @@ def health() -> dict:
 # The UI dashboard needs corpus aggregates (headcount by department, the
 # leaderboard, cost-center budgets). These come straight from the structured
 # JSON on disk, which is fast and does not depend on OpenSearch being warm.
-import json
-from functools import lru_cache
-
 DATA_DIR = Path(os.getenv("DATA_DIR", Path(__file__).resolve().parents[2] / "sample-data"))
 
 

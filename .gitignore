@@ -21,3 +21,6 @@ crash.log
 .idea/
 .DS_Store
 frontend/tsconfig.tsbuildinfo
+
+nul
+**/nul

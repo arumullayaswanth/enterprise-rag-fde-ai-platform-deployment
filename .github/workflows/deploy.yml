@@ -1,10 +1,18 @@
 name: fde-rag-deployment
+
+# Manual only. Pick "apply" to deploy everything, or "destroy" to tear it all
+# down. There is no automatic deploy on push or pull_request.
 on:
-  push:
-    branches: [prod]
-  pull_request:
-    branches: [prod]
   workflow_dispatch:
+    inputs:
+      action:
+        description: "What to run"
+        type: choice
+        required: true
+        default: apply
+        options:
+          - apply
+          - destroy
 
 permissions:
   contents: read
@@ -15,67 +23,43 @@ env:
   AWS_REGION: ${{ vars.AWS_REGION }}
   TF_VERSION: 1.15.5
   TF_IN_AUTOMATION: "true"
-  # Region reaches Terraform too.
   TF_VAR_aws_region: ${{ vars.AWS_REGION }}
 
-# Two deploys must never race for the same state lock.
 concurrency:
-  group: deploy-${{ github.ref }}
+  group: fde-rag-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
   # =========================================================================
-  #  1. CHECKS -- no AWS account needed
+  #  APPLY -- lint, build both images, then apply everything
   # =========================================================================
-  checks:
-    name: checks
+  apply:
+    name: apply
+    if: ${{ github.event.inputs.action == 'apply' }}
     runs-on: ubuntu-latest
+    environment: prod
+    env:
+      TF_VAR_image_tag: ${{ github.sha }}
     steps:
       - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-          cache: pip
 
       - name: Lint the Python
         run: |
           pip install ruff==0.8.4
           ruff check app
-  # =========================================================================
-  #  2. DEPLOY -- build both images, then apply
-  # =========================================================================
-  deploy:
-    name: deploy
-    needs: checks
-    if: github.event_name != 'pull_request'
-    runs-on: ubuntu-latest
-    environment: prod
-    env:
-      # The commit SHA is the image tag, so the running code is never ambiguous.
-      TF_VAR_image_tag: ${{ github.sha }}
-    outputs:
-      web_url: ${{ steps.info.outputs.web_url }}
-    steps:
-      - uses: actions/checkout@v4
 
       - name: Check required config is set
         run: |
           if [ -z "${{ vars.AWS_REGION }}" ]; then
-            echo "::error::Set the AWS_REGION repository variable (e.g. us-east-1)."
-            exit 1
+            echo "::error::Set the AWS_REGION repository variable (e.g. us-east-1)."; exit 1
           fi
           if [ -z "${{ vars.TF_STATE_BUCKET }}" ]; then
-            echo "::error::Create an S3 bucket for Terraform state, then set the TF_STATE_BUCKET repository variable."
-            exit 1
+            echo "::error::Create an S3 bucket for Terraform state, then set the TF_STATE_BUCKET repository variable."; exit 1
           fi
           if [ -z "${{ vars.AWS_OIDC_ROLE_ARN }}" ]; then
-            echo "::error::Set the AWS_OIDC_ROLE_ARN variable to the IAM role GitHub Actions assumes via OIDC."
-            exit 1
+            echo "::error::Set the AWS_OIDC_ROLE_ARN variable to the IAM role GitHub Actions assumes via OIDC."; exit 1
           fi
 
-      # OIDC: GitHub mints a short-lived token and assumes the role. No
-      # long-lived AWS access keys are stored in the repo.
       - uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ vars.AWS_OIDC_ROLE_ARN }}
@@ -91,11 +75,7 @@ jobs:
             -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}" \
             -backend-config="region=$AWS_REGION"
 
-      # --------------------------------------------------------------------
-      # Step 1: the registries must exist before we can push to them, and the
-      # ECS task and Lambda both reference an image tag inside them. So apply
-      # just the two repositories first.
-      # --------------------------------------------------------------------
+      # Step 1: ECR repos first, so images have somewhere to go.
       - name: Create the two ECR repositories
         id: ecr
         run: |
@@ -105,11 +85,7 @@ jobs:
           echo "api=$(terraform -chdir=terraform output -raw api_repository_url)" >> "$GITHUB_OUTPUT"
           echo "ingest=$(terraform -chdir=terraform output -raw ingest_repository_url)" >> "$GITHUB_OUTPUT"
 
-      # --------------------------------------------------------------------
-      # Step 2: one image per service, each built from the Dockerfile that
-      # sits next to its own code. `context: .` is the repo root, because both
-      # images COPY app/ and requirements.txt from there.
-      # --------------------------------------------------------------------
+      # Step 2: build and push both images.
       - uses: aws-actions/amazon-ecr-login@v2
       - uses: docker/setup-buildx-action@v3
 
@@ -129,16 +105,12 @@ jobs:
           context: .
           file: app/ingestion/Dockerfile
           push: true
-          # Lambda requires a plain single-image manifest.
-          provenance: false
+          provenance: false # Lambda requires a plain single-image manifest.
           tags: ${{ steps.ecr.outputs.ingest }}:${{ github.sha }}
           cache-from: type=gha,scope=ingest
           cache-to: type=gha,scope=ingest,mode=max
 
-      # --------------------------------------------------------------------
-      # Step 3: everything else, now that both tags exist.
-      # The first run creates an OpenSearch domain, which takes 15-25 minutes.
-      # --------------------------------------------------------------------
+      # Step 3: everything else. First run creates OpenSearch (15-25 min).
       - name: terraform apply
         timeout-minutes: 45
         run: terraform -chdir=terraform apply -input=false -auto-approve -lock-timeout=5m
@@ -150,12 +122,7 @@ jobs:
             --cluster "$(terraform -chdir=terraform output -raw ecs_cluster_name)" \
             --services "$(terraform -chdir=terraform output -raw ecs_service_name)"
 
-      # --------------------------------------------------------------------
       # Step 4: fill the search index.
-      # Uploading fires the S3 event per file, but that cannot remove passages
-      # for files you deleted. So sync first, then one reindex call that drops
-      # the index and rebuilds it from whatever is in the bucket.
-      # --------------------------------------------------------------------
       - name: Upload the sample documents
         run: |
           set -euo pipefail
@@ -163,10 +130,6 @@ jobs:
           aws s3 sync sample-data/ "s3://${BUCKET}/uploads/" --size-only --delete
           echo "BUCKET=${BUCKET}" >> "$GITHUB_ENV"
 
-      # The sync above fires one event-driven invocation per uploaded file,
-      # which saturates a low account concurrency limit. This call is the same
-      # function, so it gets ConcurrentInvocationLimitExceeded until those
-      # drain. Ride the throttling out rather than failing the deploy.
       - name: Rebuild the search index
         timeout-minutes: 20
         env:
@@ -176,7 +139,6 @@ jobs:
           set -euo pipefail
           FUNCTION=$(terraform -chdir=terraform output -raw ingest_lambda_name)
           ATTEMPTS=8
-
           for attempt in $(seq 1 "$ATTEMPTS"); do
             if aws lambda invoke \
                  --function-name "$FUNCTION" \
@@ -186,53 +148,86 @@ jobs:
                  result.json >/dev/null 2>invoke.err; then
               break
             fi
-
-            # Anything other than throttling is a real failure, so stop now.
             if ! grep -qE 'TooManyRequestsException|ConcurrentInvocationLimitExceeded' invoke.err; then
-              cat invoke.err
-              echo "::error::lambda invoke failed"
-              exit 1
+              cat invoke.err; echo "::error::lambda invoke failed"; exit 1
             fi
-
             if [ "$attempt" -eq "$ATTEMPTS" ]; then
-              cat invoke.err
-              echo "::error::Still throttled after ${ATTEMPTS} attempts. Check the account's Lambda concurrent execution limit."
-              exit 1
+              cat invoke.err; echo "::error::Still throttled after ${ATTEMPTS} attempts."; exit 1
             fi
-
-            echo "attempt ${attempt}: throttled, waiting for concurrency to free up"
-            sleep 30
+            echo "attempt ${attempt}: throttled, waiting for concurrency to free up"; sleep 30
           done
-
           cat result.json | jq .
-
-          # A Lambda error comes back as an errorMessage key, not a bad exit code.
           if jq -e 'has("errorMessage")' result.json >/dev/null; then
-            echo "::error::Ingest failed: $(jq -r .errorMessage result.json)"
-            exit 1
+            echo "::error::Ingest failed: $(jq -r .errorMessage result.json)"; exit 1
           fi
           if [ "$(jq -r '.indexed // 0' result.json)" -lt 1 ]; then
-            echo "::error::No passages were indexed"
-            exit 1
+            echo "::error::No passages were indexed"; exit 1
           fi
           echo "Indexed $(jq -r .indexed result.json) passages."
 
       - name: Show where it is
-        id: info
         run: |
           set -euo pipefail
           WEB_URL=$(terraform -chdir=terraform output -raw web_url)
-          echo "web_url=${WEB_URL}" >> "$GITHUB_OUTPUT"
-          echo "$WEB_URL"
-          # Annotation + summary so the URL is visible on the run page itself,
-          # not only inside this step's collapsed log.
           echo "::notice title=Web URL::${WEB_URL}"
-          echo "${WEB_URL}" >> "$GITHUB_STEP_SUMMARY"
+          echo "### Web URL" >> "$GITHUB_STEP_SUMMARY"
+          echo "[$WEB_URL]($WEB_URL)" >> "$GITHUB_STEP_SUMMARY"
 
-      # Last stage of the pipeline: nothing but the URL, in a banner that is
-      # easy to spot when scrolling the log.
-      - name: Web URL
+  # =========================================================================
+  #  DESTROY -- tear everything down
+  # =========================================================================
+  destroy:
+    name: destroy
+    if: ${{ github.event.inputs.action == 'destroy' }}
+    runs-on: ubuntu-latest
+    environment: prod
+    env:
+      TF_VAR_image_tag: destroy # a value is required; not used during destroy
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check required config is set
         run: |
-          echo "=============================================================="
-          echo "  WEB URL: ${{ steps.info.outputs.web_url }}"
-          echo "=============================================================="
+          if [ -z "${{ vars.AWS_REGION }}" ]; then
+            echo "::error::Set the AWS_REGION repository variable."; exit 1
+          fi
+          if [ -z "${{ vars.TF_STATE_BUCKET }}" ]; then
+            echo "::error::Set the TF_STATE_BUCKET repository variable."; exit 1
+          fi
+          if [ -z "${{ vars.AWS_OIDC_ROLE_ARN }}" ]; then
+            echo "::error::Set the AWS_OIDC_ROLE_ARN variable."; exit 1
+          fi
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_OIDC_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: terraform init
+        run: |
+          terraform -chdir=terraform init -input=false \
+            -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}" \
+            -backend-config="region=$AWS_REGION"
+
+      # Empty the documents bucket first, or S3 destroy fails on a non-empty
+      # versioned bucket. Ignore errors if it does not exist yet.
+      - name: Empty the documents bucket
+        run: |
+          set +e
+          BUCKET=$(terraform -chdir=terraform output -raw documents_bucket 2>/dev/null)
+          if [ -n "$BUCKET" ]; then
+            echo "Emptying s3://$BUCKET"
+            aws s3 rm "s3://$BUCKET" --recursive
+          fi
+          exit 0
+
+      - name: terraform destroy
+        timeout-minutes: 45
+        run: terraform -chdir=terraform destroy -input=false -auto-approve -lock-timeout=5m
+
+      - name: Done
+        run: echo "All infrastructure destroyed."
