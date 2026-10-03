@@ -30,6 +30,7 @@ import os
 from functools import lru_cache
 from pathlib import Path
 
+from botocore.exceptions import ClientError
 from fastapi import APIRouter, Depends, FastAPI, Header, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
@@ -237,10 +238,31 @@ def ingest(req: IngestRequest) -> IngestResponse:
     )
 
 
+# Bedrock throttle codes. On a brand-new account the on-demand quota for the
+# embedding/chat models can be 0, so every InvokeModel is rejected. We turn that
+# into a clear 429 the UI can explain, instead of a generic 500 that reads as
+# "backend offline".
+_THROTTLE_CODES = {"ThrottlingException", "TooManyRequestsException", "ServiceUnavailableException"}
+
+
 @api.post("/query", response_model=QueryResponse, dependencies=[Depends(require_api_key)])
 def query(req: QueryRequest) -> QueryResponse:
     search_fn = hybrid_search if req.mode == "hybrid" else vector_search
-    result = answer_question(req.question, k=req.k, search_fn=search_fn)
+    try:
+        result = answer_question(req.question, k=req.k, search_fn=search_fn)
+    except ClientError as exc:
+        code = exc.response.get("Error", {}).get("Code", "")
+        if code in _THROTTLE_CODES:
+            logger.warning("query throttled by Bedrock: %s", code)
+            raise HTTPException(
+                status_code=429,
+                detail=(
+                    "Bedrock model quota not available yet. Request an on-demand "
+                    "quota increase for Titan Text Embeddings V2 and Nova Lite in "
+                    "the Service Quotas console, then try again."
+                ),
+            ) from exc
+        raise
     return QueryResponse(
         question=req.question,
         answer=result.answer,

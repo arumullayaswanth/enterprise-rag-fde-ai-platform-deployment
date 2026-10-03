@@ -56,6 +56,7 @@ export function Ask() {
             let msg = "Something went wrong reaching the knowledge service.";
             if (e instanceof ApiError) {
                 if (e.status === 401) msg = "Unauthorized. Add your API key from the top bar.";
+                else if (e.status === 429) msg = e.message || "Bedrock model quota not available yet. Request a quota increase for Titan Text Embeddings V2 and Nova Lite, then try again.";
                 else if (e.status >= 500) msg = "The knowledge service is not ready yet. The search backend may be offline.";
                 else msg = e.message;
             }

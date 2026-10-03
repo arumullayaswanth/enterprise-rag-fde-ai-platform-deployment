@@ -2,7 +2,36 @@
 
 Everything runs **manually** from the GitHub **Actions** tab. Nothing deploys on push.
 
-Do Steps 1–3 once. Then use Step 4 to apply or destroy anytime.
+Do Steps 0–3 once. Then use Step 4 to apply or destroy anytime.
+
+---
+
+## Step 0 — Request Bedrock model quota first (do this on day one)
+
+A brand-new AWS account often has a Bedrock **on-demand quota of 0**. With a 0
+quota, every model call is rejected, so documents never get embedded and the
+**Ask** chat shows a "quota not available" message. The rest of the app
+(Directory, Org Chart, Overview, Cost Centers) still works — only the chat waits
+on this. Approval can take minutes to a day, so request it before you record or
+build.
+
+1. Open the **Service Quotas** console in your deploy region (e.g. `us-east-1`).
+2. **AWS services** → search **Bedrock** → **Amazon Bedrock**.
+3. Find each quota below, click it → **Request increase at account level**, enter the value → **Request**:
+
+| Quota name | Requested value |
+|------------|-----------------|
+| On-demand model inference requests per minute for Amazon Titan Text Embeddings V2 | `100` |
+| On-demand model inference tokens per minute for Amazon Titan Text Embeddings V2 | `100000` |
+| On-demand model inference requests per minute for Amazon Nova Lite | `50` |
+| On-demand model inference tokens per minute for Amazon Nova Lite | `100000` |
+
+4. When the requests-per-minute values show above 0, the chat works — no redeploy.
+   Re-run **apply** (Step 4) or upload any file to the documents bucket under
+   `uploads/`, and the ingest Lambda indexes it automatically.
+
+> Model **access** and model **quota** are different. Access is auto-enabled;
+> quota is what starts at 0 and must be requested here.
 
 ---
 
