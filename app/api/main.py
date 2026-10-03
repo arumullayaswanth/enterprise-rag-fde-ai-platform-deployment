@@ -30,7 +30,7 @@ import os
 from functools import lru_cache
 from pathlib import Path
 
-from fastapi import Depends, FastAPI, Header, HTTPException, status
+from fastapi import APIRouter, Depends, FastAPI, Header, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -121,7 +121,14 @@ class QueryResponse(BaseModel):
     model_id: str
 
 
-@app.get("/health")
+# All API endpoints live on this router. It is included TWICE below: once at
+# the root (so the backend serves /query, /stats, ... directly in production)
+# and once under /api (so the frontend's "/api/..." calls work the same in dev
+# behind the Vite proxy and in production without it). One definition, both paths.
+api = APIRouter()
+
+
+@api.get("/health")
 def health() -> dict:
     return {"status": "ok"}
 
@@ -180,12 +187,12 @@ def _dashboard_payload() -> dict:
     }
 
 
-@app.get("/stats", dependencies=[Depends(require_api_key)])
+@api.get("/stats", dependencies=[Depends(require_api_key)])
 def stats() -> dict:
     return _dashboard_payload()
 
 
-@app.get("/ready", dependencies=[Depends(require_api_key)])
+@api.get("/ready", dependencies=[Depends(require_api_key)])
 def ready() -> dict:
     try:
         exists = get_client().indices.exists(index=OPENSEARCH_INDEX)
@@ -195,7 +202,7 @@ def ready() -> dict:
     return {"status": "ok", "index": OPENSEARCH_INDEX, "index_exists": exists}
 
 
-@app.post("/ingest", response_model=IngestResponse, dependencies=[Depends(require_api_key)])
+@api.post("/ingest", response_model=IngestResponse, dependencies=[Depends(require_api_key)])
 def ingest(req: IngestRequest) -> IngestResponse:
     try:
         docs = [d.to_dict() for d in load(req.source)]
@@ -215,7 +222,7 @@ def ingest(req: IngestRequest) -> IngestResponse:
     )
 
 
-@app.post("/query", response_model=QueryResponse, dependencies=[Depends(require_api_key)])
+@api.post("/query", response_model=QueryResponse, dependencies=[Depends(require_api_key)])
 def query(req: QueryRequest) -> QueryResponse:
     search_fn = hybrid_search if req.mode == "hybrid" else vector_search
     result = answer_question(req.question, k=req.k, search_fn=search_fn)
@@ -225,6 +232,12 @@ def query(req: QueryRequest) -> QueryResponse:
         citations=[Citation(**c) for c in result.citations],
         model_id=result.model_id,
     )
+
+
+# Mount every endpoint at both the root and under /api, so the frontend's
+# /api/* calls resolve in production exactly as they do through the dev proxy.
+app.include_router(api)
+app.include_router(api, prefix="/api")
 
 
 # ------------------------------------------------------------------- web UI
@@ -243,9 +256,13 @@ if (STATIC_DIR / "index.html").is_file():
         return FileResponse(STATIC_DIR / "index.html")
 
     # SPA fallback: any unknown non-API path returns index.html so client-side
-    # view switching works on a hard refresh.
+    # view switching works on a hard refresh. Unknown /api/* paths get a real
+    # 404 instead of HTML, so a bad API call fails cleanly rather than looking
+    # like it "worked".
     @app.get("/{full_path:path}", include_in_schema=False)
     def spa_fallback(full_path: str) -> FileResponse:
+        if full_path.startswith("api/"):
+            raise HTTPException(status_code=404, detail="not found")
         candidate = STATIC_DIR / full_path
         if candidate.is_file():
             return FileResponse(candidate)
