@@ -1,45 +1,49 @@
 name: deploy-architecture-page
 
-# Keeps the repo-root index.html in sync with architecture-animated.html so
-# GitHub Pages (which serves this branch's root) shows the architecture page
-# instead of the README. .nojekyll stops Jekyll from reprocessing the HTML.
-# Manual only. Run it from the Actions tab after changing the architecture page.
+# Publishes the architecture page to GitHub Pages using the official Pages
+# deploy. Triggers ONLY when the HTML changes (or manually) — not on every
+# push. Requires: Settings -> Pages -> Source = "GitHub Actions" (one time).
 on:
+  push:
+    branches: [prod]
+    paths:
+      - "index.html"
+      - "architecture-animated.html"
+      - ".github/workflows/pages.yml"
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
+  pages: write
+  id-token: write
 
 concurrency:
-  group: pages-sync
+  group: pages
   cancel-in-progress: false
 
 jobs:
-  sync-index:
-    name: sync-index
+  deploy:
+    name: build-and-deploy
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
 
-      - name: Sync index.html from architecture page
+      # Serve the architecture page as the site index.
+      - name: Build the site folder
         run: |
-          cp architecture-animated.html index.html
-          touch .nojekyll
+          mkdir -p _site
+          cp index.html _site/index.html
+          touch _site/.nojekyll
 
-      - name: Commit if changed
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          if git diff --quiet index.html .nojekyll; then
-            echo "index.html already up to date."
-          else
-            git add index.html .nojekyll
-            git commit -m "pages: sync root index.html with architecture page [skip ci]"
-            git push origin HEAD:prod
-          fi
+      - uses: actions/configure-pages@v5
 
-      - name: Show URL
-        run: |
-          URL="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/"
-          echo "::notice title=Page URL::${URL}"
-          echo "[$URL]($URL)" >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
