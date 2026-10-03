@@ -144,7 +144,7 @@ jobs:
                  --function-name "$FUNCTION" \
                  --cli-binary-format raw-in-base64-out \
                  --payload "{\"reindex\":true,\"bucket\":\"${BUCKET}\",\"prefix\":\"uploads/\"}" \
-                 --cli-read-timeout 600 \
+                 --cli-read-timeout 900 \
                  result.json >/dev/null 2>invoke.err; then
               break
             fi

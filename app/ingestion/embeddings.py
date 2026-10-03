@@ -23,10 +23,10 @@ AWS_REGION = os.getenv("AWS_REGION", "us-east-1")
 EMBED_MAX_RETRIES = int(os.getenv("EMBED_MAX_RETRIES", "10"))
 EMBED_RETRY_BASE = float(os.getenv("EMBED_RETRY_BASE", "2.0"))
 EMBED_RETRY_CAP = float(os.getenv("EMBED_RETRY_CAP", "60.0"))
-# Pace between embedding calls. Default 1s keeps the rate well under a low
-# default Bedrock quota so throttling is rare. Lower it if your account has a
-# higher quota and you want faster ingestion.
-EMBED_CALL_DELAY = float(os.getenv("EMBED_CALL_DELAY", "1.0"))
+# Small pace between calls. Adaptive botocore retries do the heavy lifting on
+# throttling, so this just takes the edge off the request rate without making
+# ingestion so slow it risks the Lambda timeout.
+EMBED_CALL_DELAY = float(os.getenv("EMBED_CALL_DELAY", "0.3"))
 
 _THROTTLE_CODES = {"ThrottlingException", "TooManyRequestsException", "ServiceUnavailableException"}
 

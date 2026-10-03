@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+import os
 import re
 from dataclasses import dataclass, field
 from typing import Iterator, Sequence
 
-DEFAULT_CHUNK_SIZE = 1000
-DEFAULT_OVERLAP = 150
+# Larger chunks mean fewer total chunks, so ingestion makes far fewer Bedrock
+# embedding calls and is much less likely to hit a low account rate limit.
+DEFAULT_CHUNK_SIZE = int(os.getenv("CHUNK_SIZE", "1800"))
+DEFAULT_OVERLAP = int(os.getenv("CHUNK_OVERLAP", "150"))
 
 # Split on paragraph breaks first, then sentences, then whitespace.
 _PARAGRAPH_RE = re.compile(r"\n\s*\n")
