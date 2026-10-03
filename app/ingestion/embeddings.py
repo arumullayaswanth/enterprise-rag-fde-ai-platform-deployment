@@ -20,19 +20,26 @@ AWS_REGION = os.getenv("AWS_REGION", "us-east-1")
 # Bedrock rate-limits InvokeModel per account. More retries with longer capped
 # backoff rides out ThrottlingException; a small inter-call delay keeps the
 # request rate under the limit in the first place.
-EMBED_MAX_RETRIES = int(os.getenv("EMBED_MAX_RETRIES", "8"))
-EMBED_RETRY_BASE = float(os.getenv("EMBED_RETRY_BASE", "1.0"))
-EMBED_RETRY_CAP = float(os.getenv("EMBED_RETRY_CAP", "30.0"))
-EMBED_CALL_DELAY = float(os.getenv("EMBED_CALL_DELAY", "0.1"))
+EMBED_MAX_RETRIES = int(os.getenv("EMBED_MAX_RETRIES", "10"))
+EMBED_RETRY_BASE = float(os.getenv("EMBED_RETRY_BASE", "2.0"))
+EMBED_RETRY_CAP = float(os.getenv("EMBED_RETRY_CAP", "60.0"))
+# Pace between embedding calls. Default 1s keeps the rate well under a low
+# default Bedrock quota so throttling is rare. Lower it if your account has a
+# higher quota and you want faster ingestion.
+EMBED_CALL_DELAY = float(os.getenv("EMBED_CALL_DELAY", "1.0"))
 
 _THROTTLE_CODES = {"ThrottlingException", "TooManyRequestsException", "ServiceUnavailableException"}
 
 
 def _client():
+    # Adaptive mode makes botocore itself slow down and retry when Bedrock
+    # throttles, with many attempts. This is the first line of defence against
+    # ThrottlingException; our own loop below is the backstop.
+    max_attempts = int(os.getenv("BEDROCK_MAX_ATTEMPTS", "10"))
     return boto3.client(
         "bedrock-runtime",
         region_name=AWS_REGION,
-        config=Config(retries={"max_attempts": 3, "mode": "standard"}),
+        config=Config(retries={"max_attempts": max_attempts, "mode": "adaptive"}),
     )
 
 
