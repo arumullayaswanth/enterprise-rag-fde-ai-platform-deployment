@@ -122,15 +122,36 @@ jobs:
             --cluster "$(terraform -chdir=terraform output -raw ecs_cluster_name)" \
             --services "$(terraform -chdir=terraform output -raw ecs_service_name)"
 
-      # Step 4: fill the search index.
-      - name: Upload the sample documents
+      # Step 4: fill the search index — but ONLY the first time.
+      # If documents are already in the bucket under uploads/, they were already
+      # uploaded and indexed on a previous deploy, so we skip the slow upload +
+      # embedding on every later deploy. Force a rebuild by setting the
+      # FORCE_REINDEX repository variable to "true".
+      - name: Check if documents are already uploaded
+        id: check
         run: |
           set -euo pipefail
           BUCKET=$(terraform -chdir=terraform output -raw documents_bucket)
-          aws s3 sync sample-data/ "s3://${BUCKET}/uploads/" --size-only --delete
           echo "BUCKET=${BUCKET}" >> "$GITHUB_ENV"
+          # `|| true` so an empty prefix (ls exits 1) does not fail the step.
+          COUNT=$(aws s3 ls "s3://${BUCKET}/uploads/" --recursive 2>/dev/null | wc -l | tr -d ' ' || true)
+          COUNT=${COUNT:-0}
+          if [ "${{ vars.FORCE_REINDEX }}" = "true" ] || [ "$COUNT" -eq 0 ]; then
+            echo "needed=true" >> "$GITHUB_OUTPUT"
+            echo "First deploy (or FORCE_REINDEX=true): will upload + index."
+          else
+            echo "needed=false" >> "$GITHUB_OUTPUT"
+            echo "Documents already present (${COUNT} objects); skipping upload + index."
+          fi
+
+      - name: Upload the sample documents
+        if: steps.check.outputs.needed == 'true'
+        run: |
+          set -euo pipefail
+          aws s3 sync sample-data/ "s3://${BUCKET}/uploads/" --size-only --delete
 
       - name: Rebuild the search index
+        if: steps.check.outputs.needed == 'true'
         timeout-minutes: 20
         env:
           AWS_MAX_ATTEMPTS: "10"
