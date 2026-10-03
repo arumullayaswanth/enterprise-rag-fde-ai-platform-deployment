@@ -286,20 +286,25 @@ jobs:
           done
           exit 0
 
-      # Empty both ECR repos so they can be deleted even if force_delete was not
-      # set when they were created.
-      - name: Empty the ECR repositories
+      # Delete the ECR repos outright with --force (removes the repo AND all
+      # images in one call). We then drop them from Terraform state so the
+      # destroy below does not try to delete them again and fail. This is
+      # bulletproof regardless of whether the repo was created with
+      # force_delete=false by older code.
+      - name: Force-delete the ECR repositories
         run: |
           set +e
           for repo in $(aws ecr describe-repositories \
               --query "repositories[?starts_with(repositoryName, 'fde-rag') || starts_with(repositoryName, 'rag-devops')].repositoryName" \
               --output text 2>/dev/null); do
-            echo "Emptying ECR repo $repo"
-            IDS=$(aws ecr list-images --repository-name "$repo" --query 'imageIds[*]' --output json 2>/dev/null)
-            if [ -n "$IDS" ] && [ "$IDS" != "[]" ]; then
-              aws ecr batch-delete-image --repository-name "$repo" --image-ids "$IDS" || true
-            fi
+            echo "Force-deleting ECR repo $repo"
+            aws ecr delete-repository --repository-name "$repo" --force || true
           done
+          # Remove them from state so terraform destroy skips them cleanly.
+          terraform -chdir=terraform state rm module.ecr.aws_ecr_repository.api 2>/dev/null || true
+          terraform -chdir=terraform state rm module.ecr.aws_ecr_repository.ingest 2>/dev/null || true
+          terraform -chdir=terraform state rm 'module.ecr.aws_ecr_lifecycle_policy.keep_recent["api"]' 2>/dev/null || true
+          terraform -chdir=terraform state rm 'module.ecr.aws_ecr_lifecycle_policy.keep_recent["ingest"]' 2>/dev/null || true
           exit 0
 
       - name: terraform destroy
