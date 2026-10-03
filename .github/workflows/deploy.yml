@@ -75,6 +75,24 @@ jobs:
             -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}" \
             -backend-config="region=$AWS_REGION"
 
+      # A previous destroy may have left the API-key secret in a 7-day
+      # "scheduled for deletion" window, which blocks re-creating the same name.
+      # Force-delete it (no recovery window) AND drop it from Terraform state,
+      # so apply creates a fresh secret instead of tripping over a stale entry.
+      - name: Free the API-key secret name
+        run: |
+          set +e
+          for name in fde-rag-prod-api-key rag-devops-prod-api-key; do
+            aws secretsmanager delete-secret --secret-id "$name" \
+              --force-delete-without-recovery >/dev/null 2>&1 \
+              && echo "force-deleted lingering secret $name" \
+              || echo "no lingering secret $name"
+          done
+          # Drop stale secret entries from state so terraform recreates them.
+          terraform -chdir=terraform state rm module.security.aws_secretsmanager_secret.api_key 2>/dev/null || true
+          terraform -chdir=terraform state rm module.security.aws_secretsmanager_secret_version.api_key 2>/dev/null || true
+          exit 0
+
       # Step 1: ECR repos first, so images have somewhere to go.
       - name: Create the two ECR repositories
         id: ecr

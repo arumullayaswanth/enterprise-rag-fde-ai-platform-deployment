@@ -147,9 +147,13 @@ resource "aws_iam_role_policy_attachment" "ecs_task_runtime" {
 
 # ------------------------------------------------------------- API key secret
 resource "aws_secretsmanager_secret" "api_key" {
-  name                    = "${var.name}-api-key"
-  description             = "Shared API key required by the RAG API"
-  recovery_window_in_days = 7
+  name        = "${var.name}-api-key"
+  description = "Shared API key required by the RAG API"
+  # 0 = delete immediately on destroy, with no 7-day recovery window. Without
+  # this, the secret name stays reserved after a destroy and the next apply
+  # fails with "already scheduled for deletion". Fine for this project since
+  # the key is regenerated on every deploy.
+  recovery_window_in_days = 0
 }
 
 resource "random_password" "api_key" {
