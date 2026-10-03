@@ -43,28 +43,33 @@
             background: radial-gradient(1000px 500px at 12% -10%, rgba(99, 102, 241, .18), transparent 60%), radial-gradient(900px 480px at 95% 8%, rgba(34, 211, 238, .12), transparent 55%), var(--bg)
         }
 
-        .topbar {
-            position: sticky;
-            top: 0;
-            z-index: 30;
-            background: rgba(8, 10, 18, .8);
-            backdrop-filter: blur(14px);
-            border-bottom: 1px solid var(--line)
+        /* ===== sidebar layout ===== */
+        .layout {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            min-height: 100vh;
         }
 
-        .topbar-inner {
-            max-width: 1240px;
-            margin: 0 auto;
-            padding: .8rem 1.3rem;
+        .sidebar {
+            position: sticky;
+            top: 0;
+            align-self: start;
+            height: 100vh;
+            background: rgba(8, 10, 18, .85);
+            backdrop-filter: blur(14px);
+            border-right: 1px solid var(--line);
+            padding: 1.3rem 1rem;
             display: flex;
-            align-items: center;
-            gap: 1.2rem
+            flex-direction: column;
+            gap: 1rem;
+            overflow-y: auto;
         }
 
         .brand {
             display: flex;
             align-items: center;
-            gap: .65rem
+            gap: .65rem;
+            padding: .2rem .4rem .4rem;
         }
 
         .brand-logo {
@@ -89,40 +94,39 @@
         }
 
         .brand-sub {
-            font-size: .62rem;
-            letter-spacing: .2em;
+            font-size: .6rem;
+            letter-spacing: .18em;
             text-transform: uppercase;
             color: var(--ink-faint)
         }
 
         .tabs {
             display: flex;
-            gap: .3rem;
-            margin-left: .8rem;
-            padding: .25rem;
-            background: var(--glass);
-            border: 1px solid var(--line);
-            border-radius: 999px
+            flex-direction: column;
+            gap: .25rem;
         }
 
         .tab {
             font: inherit;
             font-weight: 600;
-            font-size: .88rem;
+            font-size: .9rem;
             color: var(--ink-soft);
             background: transparent;
             border: none;
-            border-radius: 999px;
-            padding: .45rem 1rem;
+            border-radius: 10px;
+            padding: .6rem .8rem;
             cursor: pointer;
-            display: inline-flex;
+            display: flex;
             align-items: center;
-            gap: .45rem;
+            gap: .7rem;
+            width: 100%;
+            text-align: left;
             transition: all .15s
         }
 
         .tab:hover {
-            color: var(--ink)
+            color: var(--ink);
+            background: var(--glass);
         }
 
         .tab.active {
@@ -132,14 +136,156 @@
         }
 
         .tab svg {
-            width: 16px;
-            height: 16px
+            width: 18px;
+            height: 18px;
+            flex: 0 0 auto;
         }
 
         main {
-            max-width: 1240px;
-            margin: 0 auto;
-            padding: 1.6rem 1.3rem 4rem
+            padding: 2rem 2rem 4rem;
+            max-width: 1120px;
+        }
+
+        @media (max-width:760px) {
+            .layout {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                position: static;
+                height: auto;
+                flex-direction: row;
+                flex-wrap: wrap;
+                align-items: center;
+                border-right: none;
+                border-bottom: 1px solid var(--line);
+            }
+
+            .tabs {
+                flex-direction: row;
+                flex-wrap: wrap;
+            }
+
+            .tab {
+                width: auto;
+            }
+        }
+
+        /* ===== home ===== */
+        .home-hero {
+            text-align: center;
+            padding: 1.5rem 0 2rem;
+        }
+
+        .home-logo {
+            width: 72px;
+            height: 72px;
+            margin: 0 auto 1rem;
+            border-radius: 20px;
+            background: linear-gradient(135deg, var(--violet), var(--pink));
+            display: grid;
+            place-items: center;
+            font-size: 2rem;
+            font-weight: 800;
+            color: #fff;
+            box-shadow: 0 0 40px rgba(139, 92, 246, .5);
+        }
+
+        .home-tag {
+            color: var(--ink-soft);
+            max-width: 60ch;
+            margin: .6rem auto 0;
+            font-size: 1rem;
+        }
+
+        .home-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin: 1rem 0 2rem;
+        }
+
+        @media (max-width:680px) {
+            .home-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .home-card {
+            background: var(--glass);
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            padding: 1.2rem 1.3rem;
+        }
+
+        .home-ic {
+            font-size: 1.6rem;
+        }
+
+        .home-card h3 {
+            margin: .5rem 0 .3rem;
+            font-size: 1.05rem;
+        }
+
+        .home-card p {
+            margin: 0;
+            color: var(--ink-soft);
+            font-size: .9rem;
+        }
+
+        .home-h2 {
+            font-size: 1.2rem;
+            font-weight: 800;
+            margin: 0 0 1rem;
+        }
+
+        .home-links {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: .8rem;
+        }
+
+        @media (max-width:680px) {
+            .home-links {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .home-link {
+            font: inherit;
+            cursor: pointer;
+            text-align: left;
+            color: var(--ink);
+            background: var(--glass);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: .8rem 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: .2rem;
+            transition: border-color .15s, transform .15s;
+        }
+
+        .home-link:hover {
+            border-color: var(--violet);
+            transform: translateY(-2px);
+        }
+
+        .home-link span {
+            font-size: .78rem;
+            color: var(--ink-faint);
+        }
+
+        .home-foot {
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--line);
+            color: var(--ink-faint);
+            font-size: .85rem;
+        }
+
+        .home-foot b {
+            color: var(--violet-2);
         }
 
         .view {
@@ -1086,6 +1232,75 @@
             margin-top: 1.6rem;
         }
 
+        /* ===== deploy steps ===== */
+        .st {
+            display: flex;
+            flex-direction: column;
+            gap: .9rem;
+        }
+
+        .st-row {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+            background: var(--glass);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 1rem 1.2rem;
+        }
+
+        .st-row.done {
+            border-color: rgba(52, 211, 153, .35);
+            background: rgba(52, 211, 153, .07);
+        }
+
+        .st-n {
+            width: 32px;
+            height: 32px;
+            flex: 0 0 auto;
+            border-radius: 9px;
+            display: grid;
+            place-items: center;
+            font-family: var(--mono);
+            font-weight: 700;
+            color: #fff;
+            background: linear-gradient(135deg, var(--violet), #6366f1);
+        }
+
+        .st-body {
+            font-size: .92rem;
+            color: var(--ink-soft);
+        }
+
+        .st-body b {
+            color: var(--ink);
+        }
+
+        .st-body ul {
+            margin: .5rem 0 0;
+            padding-left: 1.1rem;
+        }
+
+        .st-body li {
+            margin: .25rem 0;
+        }
+
+        .st-tbl {
+            margin-top: .5rem;
+            border-collapse: collapse;
+            font-size: .85rem;
+        }
+
+        .st-tbl td {
+            border: 1px solid var(--line);
+            padding: .35rem .7rem;
+        }
+
+        .st-tbl td:first-child {
+            color: var(--cyan);
+            font-family: var(--mono);
+        }
+
         footer {
             text-align: center;
             color: var(--ink-faint);
@@ -1105,17 +1320,25 @@
 <body>
     <div class="backdrop"></div>
 
-    <header class="topbar">
-        <div class="topbar-inner">
+    <div class="layout">
+        <aside class="sidebar">
             <div class="brand">
                 <div class="brand-logo">Y</div>
                 <div>
                     <div class="brand-name">Yash <span>Academy</span></div>
-                    <div class="brand-sub">RAG Platform</div>
+                    <div class="brand-sub">RAG · FDE Project</div>
                 </div>
             </div>
-            <div class="tabs">
-                <button class="tab active" data-view="arch">
+            <nav class="tabs">
+                <button class="tab active" data-view="home">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M3 11l9-8 9 8" />
+                        <path d="M5 10v10h14V10" />
+                    </svg>
+                    Home
+                </button>
+                <button class="tab" data-view="arch">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                         stroke-linejoin="round">
                         <rect x="3" y="3" width="7" height="7" rx="1" />
@@ -1176,696 +1399,862 @@
                     </svg>
                     Trace
                 </button>
-            </div>
-        </div>
-    </header>
-
-    <main>
-        <section class="view active" id="arch">
-            <h1>RAG <span>Architecture</span> — follow the moving dots 1 → 5</h1>
-            <p class="lead">Top band = ingestion (runs once when a document is uploaded). Bottom band = query (runs
-                every time a user asks). Each arrow carries a glowing dot so you can watch the data move.</p>
-
-            <div class="diagram">
-                <div class="stage">
-                    <div class="band ingest"><span class="band-tag">① Ingestion — document → vector index</span></div>
-                    <div class="band query"><span class="band-tag">② Query — question → answer</span></div>
-
-                    <!-- INGESTION ROW: S3 -> Lambda -> Bedrock embed -> OpenSearch -->
-                    <div class="node" style="left:40px;top:95px;">
-                        <div class="tile"><img
-                                src="https://awsfundamentals.com/assets/aws-icons/Arch_Amazon-Simple-Storage-Service_64.svg"
-                                alt="S3"></div>
-                        <div class="label">S3</div>
-                        <div class="sub">documents land here</div>
-                    </div>
-                    <div class="node" style="left:330px;top:95px;">
-                        <div class="tile"><img src="https://awsfundamentals.com/assets/aws-icons/Arch_AWS-Lambda_64.svg"
-                                alt="Lambda"></div>
-                        <div class="label">Lambda</div>
-                        <div class="sub">load + chunk</div>
-                    </div>
-                    <div class="node" style="left:620px;top:95px;">
-                        <div class="tile"><img
-                                src="https://awsfundamentals.com/assets/aws-icons/Arch_Amazon-Bedrock_64.svg"
-                                alt="Bedrock"></div>
-                        <div class="label">Bedrock Titan</div>
-                        <div class="sub">chunk → vector</div>
-                    </div>
-                    <div class="node" style="left:920px;top:95px;">
-                        <div class="tile"><img
-                                src="https://awsfundamentals.com/assets/aws-icons/Arch_Amazon-OpenSearch-Service_64.svg"
-                                alt="OpenSearch"></div>
-                        <div class="label">OpenSearch</div>
-                        <div class="sub">stores text + vector</div>
-                    </div>
-
-                    <!-- QUERY ROW: User -> App -> Lambda(embed) -> OpenSearch -> LLM -> back -->
-                    <div class="node" style="left:40px;top:400px;">
-                        <div class="tile" style="background:#06202b;border-color:rgba(34,211,238,.4)">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="1.8">
-                                <circle cx="12" cy="8" r="4" />
-                                <path d="M4 21c0-4 3.6-7 8-7s8 3 8 7" />
-                            </svg>
-                        </div>
-                        <div class="label">User</div>
-                        <div class="sub">"info about Yaswanth?"</div>
-                    </div>
-                    <div class="node" style="left:300px;top:400px;">
-                        <div class="tile"><img
-                                src="https://awsfundamentals.com/assets/aws-icons/Arch_Amazon-Elastic-Container-Service_64.svg"
-                                alt="App on ECS"></div>
-                        <div class="label">App (ECS)</div>
-                        <div class="sub">FastAPI + React</div>
-                    </div>
-                    <div class="node" style="left:560px;top:400px;">
-                        <div class="tile"><img src="https://awsfundamentals.com/assets/aws-icons/Arch_AWS-Lambda_64.svg"
-                                alt="Lambda embed"></div>
-                        <div class="label">Bedrock embed</div>
-                        <div class="sub">question → query vector</div>
-                    </div>
-                    <div class="node" style="left:830px;top:400px;">
-                        <div class="tile"><img
-                                src="https://awsfundamentals.com/assets/aws-icons/Arch_Amazon-OpenSearch-Service_64.svg"
-                                alt="OpenSearch search"></div>
-                        <div class="label">OpenSearch</div>
-                        <div class="sub">top-K similar chunks</div>
-                    </div>
-                    <div class="node" style="left:1040px;top:400px;">
-                        <div class="tile"><img
-                                src="https://awsfundamentals.com/assets/aws-icons/Arch_Amazon-Bedrock_64.svg" alt="LLM">
-                        </div>
-                        <div class="label">LLM</div>
-                        <div class="sub">writes the answer</div>
-                    </div>
-
-                    <svg class="wires" viewBox="0 0 1180 620" preserveAspectRatio="none">
-                        <defs>
-                            <marker id="ah" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
-                                <path d="M0,0 L9,4.5 L0,9 Z" fill="#a78bfa" />
-                            </marker>
-                        </defs>
-
-                        <!-- ingestion wires -->
-                        <path id="w-i1" class="wire" d="M172,128 L326,128" />
-                        <path id="w-i2" class="wire" d="M462,128 L616,128" />
-                        <path id="w-i3" class="wire" d="M752,128 L916,128" />
-
-                        <!-- query wires -->
-                        <path id="w-q1" class="wire" d="M172,433 L296,433" />
-                        <path id="w-q2" class="wire" d="M432,433 L556,433" />
-                        <path id="w-q3" class="wire" d="M696,433 L826,433" />
-                        <path id="w-q4" class="wire" d="M966,433 L1036,433" />
-                        <!-- answer returns to app -->
-                        <path id="w-q5" class="wire" d="M1080,470 C1080,560 420,560 360,475" />
-
-                        <!-- step badges -->
-                        <text class="badge" x="235" y="420">1</text>
-                        <text class="badge" x="490" y="420">2</text>
-                        <text class="badge" x="755" y="420">3</text>
-                        <text class="badge" x="995" y="420">4</text>
-                        <text class="badge" x="700" y="585">5</text>
-
-                        <!-- moving dots -->
-                        <circle class="flowdot">
-                            <animateMotion dur="2s" repeatCount="indefinite">
-                                <mpath href="#w-q1" />
-                            </animateMotion>
-                        </circle>
-                        <circle class="flowdot">
-                            <animateMotion dur="2s" begin="0.4s" repeatCount="indefinite">
-                                <mpath href="#w-q2" />
-                            </animateMotion>
-                        </circle>
-                        <circle class="flowdot">
-                            <animateMotion dur="2s" begin="0.8s" repeatCount="indefinite">
-                                <mpath href="#w-q3" />
-                            </animateMotion>
-                        </circle>
-                        <circle class="flowdot">
-                            <animateMotion dur="2s" begin="1.2s" repeatCount="indefinite">
-                                <mpath href="#w-q4" />
-                            </animateMotion>
-                        </circle>
-                        <circle class="flowdot" style="fill:var(--green)">
-                            <animateMotion dur="2.4s" begin="1.6s" repeatCount="indefinite">
-                                <mpath href="#w-q5" />
-                            </animateMotion>
-                        </circle>
-                        <circle class="flowdot" style="fill:var(--cyan)">
-                            <animateMotion dur="2.4s" repeatCount="indefinite">
-                                <mpath href="#w-i1" />
-                            </animateMotion>
-                        </circle>
-                        <circle class="flowdot" style="fill:var(--cyan)">
-                            <animateMotion dur="2.4s" begin="0.6s" repeatCount="indefinite">
-                                <mpath href="#w-i2" />
-                            </animateMotion>
-                        </circle>
-                        <circle class="flowdot" style="fill:var(--cyan)">
-                            <animateMotion dur="2.4s" begin="1.2s" repeatCount="indefinite">
-                                <mpath href="#w-i3" />
-                            </animateMotion>
-                        </circle>
+                <button class="tab" data-view="steps">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M9 11l3 3L22 4" />
+                        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
                     </svg>
-                </div>
-            </div>
+                    Deploy Steps
+                </button>
+            </nav>
+        </aside>
 
-            <div class="legend">
-                <span><span class="n">1</span> User asks the App</span>
-                <span><span class="n">2</span> App → Bedrock embeds the question</span>
-                <span><span class="n">3</span> Query vector searches OpenSearch</span>
-                <span><span class="n">4</span> Top-K chunks go to the LLM</span>
-                <span><span class="n">5</span> LLM's grounded answer returns to the user</span>
-            </div>
-        </section>
+        <main>
+            <!-- ===================== HOME ===================== -->
+            <section class="view active" id="home">
+                <div class="home-hero">
+                    <div class="home-logo">Y</div>
+                    <h1>Yash <span>Academy</span></h1>
+                    <p class="home-tag">An FDE (Forward Deployed Engineering) project — building a production
+                        Retrieval-Augmented Generation platform on AWS.</p>
+                </div>
 
-        <section class="view" id="flow">
-            <h1>Step <span>by step</span></h1>
-            <p class="lead">The same journey, written out plainly.</p>
-            <div class="steps">
-                <div class="srow">
-                    <div class="snum">1</div>
-                    <div>
-                        <h3>Upload &amp; chunk</h3>
-                        <p>Documents land in S3; a Lambda splits them into small chunks.</p>
+                <div class="home-grid">
+                    <div class="home-card">
+                        <div class="home-ic">🎯</div>
+                        <h3>What we're building</h3>
+                        <p>A RAG system that answers questions about company knowledge — people, policies, performance —
+                            with grounded, cited answers. Every answer comes from your own documents, not guesses.</p>
+                    </div>
+                    <div class="home-card">
+                        <div class="home-ic">⚙️</div>
+                        <h3>How it works</h3>
+                        <p>Documents become vectors stored in OpenSearch. A question is embedded, matched to the closest
+                            chunks, and an LLM writes the answer from that context.</p>
+                    </div>
+                    <div class="home-card">
+                        <div class="home-ic">☁️</div>
+                        <h3>Built on AWS</h3>
+                        <p>Bedrock (Titan + Nova), OpenSearch, ECS Fargate, Lambda, S3, ALB — provisioned with modular
+                            Terraform and shipped through a one-click GitHub Actions pipeline.</p>
+                    </div>
+                    <div class="home-card">
+                        <div class="home-ic">🧑‍💻</div>
+                        <h3>Full stack</h3>
+                        <p>A React + TypeScript frontend talks to a FastAPI backend. One ECS container serves both the
+                            API and the website.</p>
                     </div>
                 </div>
-                <div class="srow">
-                    <div class="snum">2</div>
-                    <div>
-                        <h3>Embed</h3>
-                        <p>Amazon Bedrock (Titan) turns each chunk into a vector.</p>
-                    </div>
-                </div>
-                <div class="srow">
-                    <div class="snum">3</div>
-                    <div>
-                        <h3>Store</h3>
-                        <p>Chunk text + vector are saved in the OpenSearch vector index.</p>
-                    </div>
-                </div>
-                <div class="srow">
-                    <div class="snum">4</div>
-                    <div>
-                        <h3>Ask</h3>
-                        <p>A user asks a question; it is embedded into a query vector.</p>
-                    </div>
-                </div>
-                <div class="srow">
-                    <div class="snum">5</div>
-                    <div>
-                        <h3>Search</h3>
-                        <p>OpenSearch returns the Top-K most similar chunks.</p>
-                    </div>
-                </div>
-                <div class="srow">
-                    <div class="snum">6</div>
-                    <div>
-                        <h3>Answer</h3>
-                        <p>The LLM reads those chunks and writes a grounded, cited answer.</p>
-                    </div>
-                </div>
-            </div>
-        </section>
 
-        <!-- ===================== EXAMPLE (end-to-end scenario) ===================== -->
-        <section class="view" id="example">
-            <h1>End-to-End <span>Example</span> — "What is Amazon S3?"</h1>
-            <p class="lead">A single AWS documentation PDF goes in; a grounded answer comes out. Steps 1–4 happen once
-                (ingestion). Steps 5–9 happen every time someone asks.</p>
+                <h2 class="home-h2">Explore the project</h2>
+                <div class="home-links">
+                    <button class="home-link" data-goto="arch"><b>Architecture</b><span>live service flow with moving
+                            dots</span></button>
+                    <button class="home-link" data-goto="highlevel"><b>High-Level</b><span>every service, numbered
+                            1→9</span></button>
+                    <button class="home-link" data-goto="codeflow"><b>Code Flow</b><span>frontend ↔
+                            backend</span></button>
+                    <button class="home-link" data-goto="trace"><b>Trace</b><span>one message, end to
+                            end</span></button>
+                    <button class="home-link" data-goto="example"><b>Example</b><span>the 9-step RAG
+                            scenario</span></button>
+                    <button class="home-link" data-goto="deploy"><b>Deploy</b><span>CI/CD + infra
+                            pipeline</span></button>
+                </div>
 
-            <div class="ex-doc">📄 <code>aws-s3-documentation.pdf</code></div>
+                <div class="home-foot">Author: <b>Yaswanth</b> · Enterprise RAG FDE Platform</div>
+            </section>
 
-            <div class="ex-grid">
-                <!-- 1 -->
-                <div class="ex-card ingest">
-                    <div class="ex-head"><span class="ex-num">1</span> Load</div>
-                    <div class="ex-pipe"><span class="ex-box">PDF</span><span class="ex-arr">↓</span><span
-                            class="ex-box accent">Document Loader</span></div>
-                </div>
-                <!-- 2 -->
-                <div class="ex-card ingest">
-                    <div class="ex-head"><span class="ex-num">2</span> Split</div>
-                    <div class="ex-pipe wrap">
-                        <span class="ex-box">PDF</span><span class="ex-arr">↓</span>
-                        <span class="ex-tag">Chunk 1</span><span class="ex-tag">Chunk 2</span><span class="ex-tag">Chunk
-                            3</span><span class="ex-dots">…</span><span class="ex-tag">Chunk
-                            100</span>
-                    </div>
-                </div>
-                <!-- 3 -->
-                <div class="ex-card ingest">
-                    <div class="ex-head"><span class="ex-num">3</span> Embed</div>
-                    <div class="ex-rows">
-                        <div>Chunk 1 <span class="ex-arr">→</span> <span class="accent">Embedding</span> <span
-                                class="ex-arr">→</span> Vector 1</div>
-                        <div>Chunk 2 <span class="ex-arr">→</span> <span class="accent">Embedding</span> <span
-                                class="ex-arr">→</span> Vector 2</div>
-                        <div class="ex-dots">… up to Chunk 100 → Vector 100</div>
-                    </div>
-                </div>
-                <!-- 4 -->
-                <div class="ex-card ingest">
-                    <div class="ex-head"><span class="ex-num">4</span> Store</div>
-                    <div class="ex-rows">
-                        <div class="store">OpenSearch</div>
-                        <div>Chunk 1 + Vector 1</div>
-                        <div>Chunk 2 + Vector 2</div>
-                        <div class="ex-dots">… Chunk 100 + Vector 100</div>
-                    </div>
-                </div>
-                <!-- 5 -->
-                <div class="ex-card query">
-                    <div class="ex-head"><span class="ex-num">5</span> User Question</div>
-                    <div class="ex-q">"What is Amazon S3?"</div>
-                </div>
-                <!-- 6 -->
-                <div class="ex-card query">
-                    <div class="ex-head"><span class="ex-num">6</span> Embed Question</div>
-                    <div class="ex-pipe"><span class="ex-box">Question</span><span class="ex-arr">↓</span><span
-                            class="ex-box accent">Titan Embedding</span><span class="ex-arr">↓</span><span
-                            class="ex-box">Query Vector</span></div>
-                </div>
-                <!-- 7 -->
-                <div class="ex-card query">
-                    <div class="ex-head"><span class="ex-num">7</span> Search</div>
-                    <div class="ex-pipe wrap"><span class="ex-box">Query Vector</span><span class="ex-arr">↓</span><span
-                            class="ex-box store">OpenSearch</span><span class="ex-arr">↓</span><span class="ex-box">Top
-                            3
-                            chunks</span></div>
-                </div>
-                <!-- 8 -->
-                <div class="ex-card query">
-                    <div class="ex-head"><span class="ex-num">8</span> Build Prompt</div>
-                    <div class="ex-rows">
-                        <div><b>Context:</b> <span class="ex-tag hot">Chunk 7</span><span class="ex-tag hot">Chunk
-                                2</span><span class="ex-tag hot">Chunk 15</span></div>
-                        <div><b>Question:</b> What is Amazon S3?</div>
-                    </div>
-                </div>
-                <!-- 9 -->
-                <div class="ex-card query span2">
-                    <div class="ex-head"><span class="ex-num">9</span> Generate</div>
-                    <div class="ex-pipe"><span class="ex-box">Prompt</span><span class="ex-arr">↓</span><span
-                            class="ex-box accent">Bedrock LLM</span><span class="ex-arr">↓</span><span class="ex-box"
-                            style="border-color:var(--green);color:var(--green)">Final Answer</span></div>
-                    <div class="ex-answer">Amazon S3 is an AWS object storage service that stores data as objects inside
-                        buckets and offers multiple storage classes for different access needs.</div>
-                </div>
-            </div>
+            <section class="view" id="arch">
+                <h1>RAG <span>Architecture</span> — follow the moving dots 1 → 5</h1>
+                <p class="lead">Top band = ingestion (runs once when a document is uploaded). Bottom band = query (runs
+                    every time a user asks). Each arrow carries a glowing dot so you can watch the data move.</p>
 
-            <!-- Why OpenSearch -->
-            <h2 class="why-title">Why do we need OpenSearch?</h2>
-            <p class="lead">The embedding model only turns text into numbers. Something has to <b>keep</b> those vectors
-                and <b>find</b> the closest ones fast. That is OpenSearch. Follow the same question through it.</p>
-
-            <div class="why-grid">
-                <div class="why-card">
-                    <div class="why-h"><span class="why-ic bad">✕</span> Without OpenSearch</div>
-                    <p>You would hold all <b>100</b> vectors in memory and compare the query against every one on each
-                        request — slow, and lost the moment the app restarts. And you would still need the original
-                        chunk <i>text</i> to send to the LLM, which a bare vector does not carry.</p>
-                </div>
-                <div class="why-card ok">
-                    <div class="why-h"><span class="why-ic good">✓</span> With OpenSearch</div>
-                    <p>It <b>stores</b> each chunk's text + vector together, runs <b>k-NN similarity search</b> in
-                        milliseconds, scales past millions of chunks, and hands back the actual text — so the LLM gets
-                        real context, not raw numbers.</p>
-                </div>
-            </div>
-
-            <div class="why-flow">
-                <div class="why-step">
-                    <span class="ex-num">1</span>
-                    <div><b>Query vector arrives</b><br><span class="mono">[0.11, 0.22, 0.54, …]</span></div>
-                </div>
-                <div class="why-arr">↓</div>
-                <div class="why-step">
-                    <span class="ex-num">2</span>
-                    <div><b>OpenSearch k-NN compares</b> it to all stored vectors and ranks them by similarity score
-                    </div>
-                </div>
-                <div class="why-arr">↓</div>
-                <div class="why-step">
-                    <span class="ex-num">3</span>
-                    <div><b>Top matches come back with their text</b>
-                        <div class="why-hits">
-                            <span>Chunk 7 — <span class="mono">0.92</span> — "Amazon S3 is an object storage
-                                service…"</span>
-                            <span>Chunk 2 — <span class="mono">0.88</span> — "S3 stores data as objects in
-                                buckets…"</span>
-                            <span>Chunk 15 — <span class="mono">0.83</span> — "S3 offers multiple storage
-                                classes…"</span>
+                <div class="diagram">
+                    <div class="stage">
+                        <div class="band ingest"><span class="band-tag">① Ingestion — document → vector index</span>
                         </div>
-                    </div>
-                </div>
-                <div class="why-arr">↓</div>
-                <div class="why-step">
-                    <span class="ex-num">4</span>
-                    <div><b>That text becomes the LLM's context</b> — the model answers only from these retrieved chunks
-                    </div>
-                </div>
-            </div>
+                        <div class="band query"><span class="band-tag">② Query — question → answer</span></div>
 
-            <div class="why-note">In one line: <b>Embedding</b> = turn meaning into numbers · <b>OpenSearch</b> = store
-                the numbers and find the closest ones · <b>LLM</b> = write the answer from what OpenSearch returned.
-            </div>
-        </section>
-
-        <!-- ===================== DEPLOY (CI/CD + infra) ===================== -->
-        <section class="view" id="deploy">
-            <h1>Deployment <span>Flow</span> — one click to live</h1>
-            <p class="lead">Run the <b>fde-rag-deployment</b> workflow with <b>apply</b>. GitHub Actions assumes an AWS
-                role via OIDC, builds the two images, pushes them to ECR, and Terraform provisions the whole stack.
-                When it finishes you open the load balancer URL and test the UI.</p>
-
-            <!-- Phase A: CI -->
-            <h2 class="dep-phase ci">① CI — build &amp; push images</h2>
-            <div class="dep-row">
-                <div class="dep-node">
-                    <div class="dep-tile gh">
-                        <svg viewBox="0 0 24 24" fill="#fff">
-                            <path
-                                d="M12 2A10 10 0 0 0 8.8 21.5c.5.1.7-.2.7-.5v-1.7c-2.8.6-3.4-1.3-3.4-1.3-.5-1.2-1.1-1.5-1.1-1.5-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.5 2.3 1.1 2.9.8.1-.6.3-1.1.6-1.3-2.2-.300-4.6-1.1-4.6-4.9 0-1.1.4-2 1-2.7-.1-.3-.4-1.3.1-2.7 0 0 .8-.3 2.7 1a9.4 9.4 0 0 1 5 0c1.9-1.3 2.7-1 2.7-1 .5 1.4.2 2.4.1 2.7.6.7 1 1.6 1 2.7 0 3.8-2.3 4.6-4.6 4.9.4.3.7.9.7 1.9v2.8c0 .3.2.6.7.5A10 10 0 0 0 12 2z" />
-                        </svg>
-                    </div>
-                    <div class="dep-label">GitHub Actions</div>
-                    <div class="dep-sub">manual run: apply</div>
-                </div>
-                <span class="dep-arr" data-step="1">→</span>
-                <div class="dep-node">
-                    <div class="dep-tile key">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2" stroke-linecap="round"
-                            stroke-linejoin="round">
-                            <path
-                                d="M21 2l-2 2m-7.6 7.6a5.5 5.5 0 1 1-7.8 7.8 5.5 5.5 0 0 1 7.8-7.8zM15.5 7.5l3 3L22 7l-3-3" />
-                        </svg>
-                    </div>
-                    <div class="dep-label">AWS OIDC</div>
-                    <div class="dep-sub">assume role, no keys</div>
-                </div>
-                <span class="dep-arr" data-step="2">→</span>
-                <div class="dep-node">
-                    <div class="dep-tile w"><img
-                            src="https://awsfundamentals.com/assets/aws-icons/Arch_Amazon-Elastic-Container-Registry_64.svg"
-                            alt="ECR"></div>
-                    <div class="dep-label">ECR</div>
-                    <div class="dep-sub">api + ingest images</div>
-                </div>
-            </div>
-
-            <div class="dep-connect">↓ Terraform apply</div>
-
-            <!-- Phase B: Terraform provisions -->
-            <h2 class="dep-phase tf">② Terraform — provision the stack</h2>
-            <div class="dep-grid">
-                <div class="dep-card">
-                    <div class="dep-tile w"><img
-                            src="https://awsfundamentals.com/assets/aws-icons/Arch_Amazon-Virtual-Private-Cloud_64.svg"
-                            alt="VPC"></div>
-                    <div class="dep-label">VPC + subnets</div>
-                    <div class="dep-sub">network, NAT, SGs</div>
-                </div>
-                <div class="dep-card">
-                    <div class="dep-tile w"><img
-                            src="https://awsfundamentals.com/assets/aws-icons/Arch_Elastic-Load-Balancing_64.svg"
-                            alt="ALB"></div>
-                    <div class="dep-label">ALB</div>
-                    <div class="dep-sub">public entry point</div>
-                </div>
-                <div class="dep-card">
-                    <div class="dep-tile w"><img
-                            src="https://awsfundamentals.com/assets/aws-icons/Arch_Amazon-Elastic-Container-Service_64.svg"
-                            alt="ECS"></div>
-                    <div class="dep-label">ECS Fargate</div>
-                    <div class="dep-sub">runs the API + UI</div>
-                </div>
-                <div class="dep-card">
-                    <div class="dep-tile w"><img
-                            src="https://awsfundamentals.com/assets/aws-icons/Arch_AWS-Lambda_64.svg" alt="Lambda">
-                    </div>
-                    <div class="dep-label">Lambda</div>
-                    <div class="dep-sub">ingest worker</div>
-                </div>
-                <div class="dep-card">
-                    <div class="dep-tile w"><img
-                            src="https://awsfundamentals.com/assets/aws-icons/Arch_Amazon-OpenSearch-Service_64.svg"
-                            alt="OpenSearch"></div>
-                    <div class="dep-label">OpenSearch</div>
-                    <div class="dep-sub">vector index</div>
-                </div>
-                <div class="dep-card">
-                    <div class="dep-tile w"><img
-                            src="https://awsfundamentals.com/assets/aws-icons/Arch_Amazon-Simple-Storage-Service_64.svg"
-                            alt="S3"></div>
-                    <div class="dep-label">S3</div>
-                    <div class="dep-sub">documents bucket</div>
-                </div>
-                <div class="dep-card">
-                    <div class="dep-tile w"><img
-                            src="https://awsfundamentals.com/assets/aws-icons/Arch_AWS-Secrets-Manager_64.svg"
-                            alt="Secrets Manager"></div>
-                    <div class="dep-label">Secrets Mgr</div>
-                    <div class="dep-sub">API key</div>
-                </div>
-                <div class="dep-card">
-                    <div class="dep-tile w"><img
-                            src="https://awsfundamentals.com/assets/aws-icons/Arch_Amazon-Bedrock_64.svg" alt="Bedrock">
-                    </div>
-                    <div class="dep-label">Bedrock</div>
-                    <div class="dep-sub">embed + LLM</div>
-                </div>
-            </div>
-
-            <div class="dep-connect">↓ load data &amp; index</div>
-
-            <!-- Phase C: data + access -->
-            <h2 class="dep-phase run">③ Ingest &amp; access</h2>
-            <div class="dep-steps">
-                <div class="dep-step"><span class="ex-num">A</span>
-                    <div>Sample docs sync to <b>S3</b> → Lambda embeds them → stored in <b>OpenSearch</b>.</div>
-                </div>
-                <div class="dep-step"><span class="ex-num">B</span>
-                    <div>Pipeline waits for <b>ECS</b> to become healthy behind the <b>ALB</b>.</div>
-                </div>
-                <div class="dep-step"><span class="ex-num">C</span>
-                    <div>The run prints the <b>Web URL</b> → open it, you see the Yash Academy UI.</div>
-                </div>
-                <div class="dep-step"><span class="ex-num">D</span>
-                    <div>Ask a question on the <b>Ask</b> tab → grounded, cited answer. ✅ Tested end to end.</div>
-                </div>
-            </div>
-
-            <div class="dep-cta">
-                <div class="dep-cta-item"><span class="dep-pill apply">apply</span> deploys everything above</div>
-                <div class="dep-cta-item"><span class="dep-pill destroy">destroy</span> empties the bucket &amp; tears
-                    it all down</div>
-            </div>
-        </section>
-
-        <!-- ===================== HIGH-LEVEL ARCHITECTURE ===================== -->
-        <section class="view" id="highlevel">
-            <h1>High-Level <span>Architecture</span> — numbered connections</h1>
-            <p class="lead">Every box is one service. Each arrow is numbered — follow 1 → 9 to see how one tool hands
-                off to the next.</p>
-
-            <div class="hl">
-                <div class="hl-node n-user">
-                    <div class="hl-ic">👤</div>
-                    <div class="hl-t">User (Browser)</div>
-                </div>
-                <div class="hl-c"><span class="hl-num">1</span> opens / asks</div>
-
-                <div class="hl-node">
-                    <div class="hl-ic"><img
-                            src="https://awsfundamentals.com/assets/aws-icons/Arch_Elastic-Load-Balancing_64.svg"
-                            alt="ALB"></div>
-                    <div class="hl-t">ALB (public)</div>
-                </div>
-                <div class="hl-c"><span class="hl-num">2</span> forwards HTTP</div>
-
-                <div class="hl-node">
-                    <div class="hl-ic"><img
-                            src="https://awsfundamentals.com/assets/aws-icons/Arch_Amazon-Elastic-Container-Service_64.svg"
-                            alt="ECS"></div>
-                    <div class="hl-t">ECS Fargate<br><small>React UI + FastAPI</small></div>
-                </div>
-
-                <div class="hl-branch">
-                    <div class="hl-leg">
-                        <div class="hl-c"><span class="hl-num">3</span> embed text</div>
-                        <div class="hl-node">
-                            <div class="hl-ic"><img
+                        <!-- INGESTION ROW: S3 -> Lambda -> Bedrock embed -> OpenSearch -->
+                        <div class="node" style="left:40px;top:95px;">
+                            <div class="tile"><img
+                                    src="https://awsfundamentals.com/assets/aws-icons/Arch_Amazon-Simple-Storage-Service_64.svg"
+                                    alt="S3"></div>
+                            <div class="label">S3</div>
+                            <div class="sub">documents land here</div>
+                        </div>
+                        <div class="node" style="left:330px;top:95px;">
+                            <div class="tile"><img
+                                    src="https://awsfundamentals.com/assets/aws-icons/Arch_AWS-Lambda_64.svg"
+                                    alt="Lambda"></div>
+                            <div class="label">Lambda</div>
+                            <div class="sub">load + chunk</div>
+                        </div>
+                        <div class="node" style="left:620px;top:95px;">
+                            <div class="tile"><img
                                     src="https://awsfundamentals.com/assets/aws-icons/Arch_Amazon-Bedrock_64.svg"
                                     alt="Bedrock"></div>
-                            <div class="hl-t">Bedrock<br><small>Titan + LLM</small></div>
+                            <div class="label">Bedrock Titan</div>
+                            <div class="sub">chunk → vector</div>
                         </div>
-                    </div>
-                    <div class="hl-leg">
-                        <div class="hl-c"><span class="hl-num">4</span> vector search</div>
-                        <div class="hl-node">
-                            <div class="hl-ic"><img
+                        <div class="node" style="left:920px;top:95px;">
+                            <div class="tile"><img
                                     src="https://awsfundamentals.com/assets/aws-icons/Arch_Amazon-OpenSearch-Service_64.svg"
                                     alt="OpenSearch"></div>
-                            <div class="hl-t">OpenSearch</div>
+                            <div class="label">OpenSearch</div>
+                            <div class="sub">stores text + vector</div>
+                        </div>
+
+                        <!-- QUERY ROW: User -> App -> Lambda(embed) -> OpenSearch -> LLM -> back -->
+                        <div class="node" style="left:40px;top:400px;">
+                            <div class="tile" style="background:#06202b;border-color:rgba(34,211,238,.4)">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="1.8">
+                                    <circle cx="12" cy="8" r="4" />
+                                    <path d="M4 21c0-4 3.6-7 8-7s8 3 8 7" />
+                                </svg>
+                            </div>
+                            <div class="label">User</div>
+                            <div class="sub">"info about Yaswanth?"</div>
+                        </div>
+                        <div class="node" style="left:300px;top:400px;">
+                            <div class="tile"><img
+                                    src="https://awsfundamentals.com/assets/aws-icons/Arch_Amazon-Elastic-Container-Service_64.svg"
+                                    alt="App on ECS"></div>
+                            <div class="label">App (ECS)</div>
+                            <div class="sub">FastAPI + React</div>
+                        </div>
+                        <div class="node" style="left:560px;top:400px;">
+                            <div class="tile"><img
+                                    src="https://awsfundamentals.com/assets/aws-icons/Arch_AWS-Lambda_64.svg"
+                                    alt="Lambda embed"></div>
+                            <div class="label">Bedrock embed</div>
+                            <div class="sub">question → query vector</div>
+                        </div>
+                        <div class="node" style="left:830px;top:400px;">
+                            <div class="tile"><img
+                                    src="https://awsfundamentals.com/assets/aws-icons/Arch_Amazon-OpenSearch-Service_64.svg"
+                                    alt="OpenSearch search"></div>
+                            <div class="label">OpenSearch</div>
+                            <div class="sub">top-K similar chunks</div>
+                        </div>
+                        <div class="node" style="left:1040px;top:400px;">
+                            <div class="tile"><img
+                                    src="https://awsfundamentals.com/assets/aws-icons/Arch_Amazon-Bedrock_64.svg"
+                                    alt="LLM">
+                            </div>
+                            <div class="label">LLM</div>
+                            <div class="sub">writes the answer</div>
+                        </div>
+
+                        <svg class="wires" viewBox="0 0 1180 620" preserveAspectRatio="none">
+                            <defs>
+                                <marker id="ah" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+                                    <path d="M0,0 L9,4.5 L0,9 Z" fill="#a78bfa" />
+                                </marker>
+                            </defs>
+
+                            <!-- ingestion wires -->
+                            <path id="w-i1" class="wire" d="M172,128 L326,128" />
+                            <path id="w-i2" class="wire" d="M462,128 L616,128" />
+                            <path id="w-i3" class="wire" d="M752,128 L916,128" />
+
+                            <!-- query wires -->
+                            <path id="w-q1" class="wire" d="M172,433 L296,433" />
+                            <path id="w-q2" class="wire" d="M432,433 L556,433" />
+                            <path id="w-q3" class="wire" d="M696,433 L826,433" />
+                            <path id="w-q4" class="wire" d="M966,433 L1036,433" />
+                            <!-- answer returns to app -->
+                            <path id="w-q5" class="wire" d="M1080,470 C1080,560 420,560 360,475" />
+
+                            <!-- step badges -->
+                            <text class="badge" x="235" y="420">1</text>
+                            <text class="badge" x="490" y="420">2</text>
+                            <text class="badge" x="755" y="420">3</text>
+                            <text class="badge" x="995" y="420">4</text>
+                            <text class="badge" x="700" y="585">5</text>
+
+                            <!-- moving dots -->
+                            <circle class="flowdot">
+                                <animateMotion dur="2s" repeatCount="indefinite">
+                                    <mpath href="#w-q1" />
+                                </animateMotion>
+                            </circle>
+                            <circle class="flowdot">
+                                <animateMotion dur="2s" begin="0.4s" repeatCount="indefinite">
+                                    <mpath href="#w-q2" />
+                                </animateMotion>
+                            </circle>
+                            <circle class="flowdot">
+                                <animateMotion dur="2s" begin="0.8s" repeatCount="indefinite">
+                                    <mpath href="#w-q3" />
+                                </animateMotion>
+                            </circle>
+                            <circle class="flowdot">
+                                <animateMotion dur="2s" begin="1.2s" repeatCount="indefinite">
+                                    <mpath href="#w-q4" />
+                                </animateMotion>
+                            </circle>
+                            <circle class="flowdot" style="fill:var(--green)">
+                                <animateMotion dur="2.4s" begin="1.6s" repeatCount="indefinite">
+                                    <mpath href="#w-q5" />
+                                </animateMotion>
+                            </circle>
+                            <circle class="flowdot" style="fill:var(--cyan)">
+                                <animateMotion dur="2.4s" repeatCount="indefinite">
+                                    <mpath href="#w-i1" />
+                                </animateMotion>
+                            </circle>
+                            <circle class="flowdot" style="fill:var(--cyan)">
+                                <animateMotion dur="2.4s" begin="0.6s" repeatCount="indefinite">
+                                    <mpath href="#w-i2" />
+                                </animateMotion>
+                            </circle>
+                            <circle class="flowdot" style="fill:var(--cyan)">
+                                <animateMotion dur="2.4s" begin="1.2s" repeatCount="indefinite">
+                                    <mpath href="#w-i3" />
+                                </animateMotion>
+                            </circle>
+                        </svg>
+                    </div>
+                </div>
+
+                <div class="legend">
+                    <span><span class="n">1</span> User asks the App</span>
+                    <span><span class="n">2</span> App → Bedrock embeds the question</span>
+                    <span><span class="n">3</span> Query vector searches OpenSearch</span>
+                    <span><span class="n">4</span> Top-K chunks go to the LLM</span>
+                    <span><span class="n">5</span> LLM's grounded answer returns to the user</span>
+                </div>
+            </section>
+
+            <section class="view" id="flow">
+                <h1>Step <span>by step</span></h1>
+                <p class="lead">The same journey, written out plainly.</p>
+                <div class="steps">
+                    <div class="srow">
+                        <div class="snum">1</div>
+                        <div>
+                            <h3>Upload &amp; chunk</h3>
+                            <p>Documents land in S3; a Lambda splits them into small chunks.</p>
                         </div>
                     </div>
-                    <div class="hl-leg">
-                        <div class="hl-c"><span class="hl-num">5</span> read secret</div>
-                        <div class="hl-node">
-                            <div class="hl-ic"><img
-                                    src="https://awsfundamentals.com/assets/aws-icons/Arch_AWS-Secrets-Manager_64.svg"
-                                    alt="Secrets"></div>
-                            <div class="hl-t">Secrets Mgr</div>
+                    <div class="srow">
+                        <div class="snum">2</div>
+                        <div>
+                            <h3>Embed</h3>
+                            <p>Amazon Bedrock (Titan) turns each chunk into a vector.</p>
+                        </div>
+                    </div>
+                    <div class="srow">
+                        <div class="snum">3</div>
+                        <div>
+                            <h3>Store</h3>
+                            <p>Chunk text + vector are saved in the OpenSearch vector index.</p>
+                        </div>
+                    </div>
+                    <div class="srow">
+                        <div class="snum">4</div>
+                        <div>
+                            <h3>Ask</h3>
+                            <p>A user asks a question; it is embedded into a query vector.</p>
+                        </div>
+                    </div>
+                    <div class="srow">
+                        <div class="snum">5</div>
+                        <div>
+                            <h3>Search</h3>
+                            <p>OpenSearch returns the Top-K most similar chunks.</p>
+                        </div>
+                    </div>
+                    <div class="srow">
+                        <div class="snum">6</div>
+                        <div>
+                            <h3>Answer</h3>
+                            <p>The LLM reads those chunks and writes a grounded, cited answer.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===================== EXAMPLE (end-to-end scenario) ===================== -->
+            <section class="view" id="example">
+                <h1>End-to-End <span>Example</span> — "What is Amazon S3?"</h1>
+                <p class="lead">A single AWS documentation PDF goes in; a grounded answer comes out. Steps 1–4 happen
+                    once
+                    (ingestion). Steps 5–9 happen every time someone asks.</p>
+
+                <div class="ex-doc">📄 <code>aws-s3-documentation.pdf</code></div>
+
+                <div class="ex-grid">
+                    <!-- 1 -->
+                    <div class="ex-card ingest">
+                        <div class="ex-head"><span class="ex-num">1</span> Load</div>
+                        <div class="ex-pipe"><span class="ex-box">PDF</span><span class="ex-arr">↓</span><span
+                                class="ex-box accent">Document Loader</span></div>
+                    </div>
+                    <!-- 2 -->
+                    <div class="ex-card ingest">
+                        <div class="ex-head"><span class="ex-num">2</span> Split</div>
+                        <div class="ex-pipe wrap">
+                            <span class="ex-box">PDF</span><span class="ex-arr">↓</span>
+                            <span class="ex-tag">Chunk 1</span><span class="ex-tag">Chunk 2</span><span
+                                class="ex-tag">Chunk
+                                3</span><span class="ex-dots">…</span><span class="ex-tag">Chunk
+                                100</span>
+                        </div>
+                    </div>
+                    <!-- 3 -->
+                    <div class="ex-card ingest">
+                        <div class="ex-head"><span class="ex-num">3</span> Embed</div>
+                        <div class="ex-rows">
+                            <div>Chunk 1 <span class="ex-arr">→</span> <span class="accent">Embedding</span> <span
+                                    class="ex-arr">→</span> Vector 1</div>
+                            <div>Chunk 2 <span class="ex-arr">→</span> <span class="accent">Embedding</span> <span
+                                    class="ex-arr">→</span> Vector 2</div>
+                            <div class="ex-dots">… up to Chunk 100 → Vector 100</div>
+                        </div>
+                    </div>
+                    <!-- 4 -->
+                    <div class="ex-card ingest">
+                        <div class="ex-head"><span class="ex-num">4</span> Store</div>
+                        <div class="ex-rows">
+                            <div class="store">OpenSearch</div>
+                            <div>Chunk 1 + Vector 1</div>
+                            <div>Chunk 2 + Vector 2</div>
+                            <div class="ex-dots">… Chunk 100 + Vector 100</div>
+                        </div>
+                    </div>
+                    <!-- 5 -->
+                    <div class="ex-card query">
+                        <div class="ex-head"><span class="ex-num">5</span> User Question</div>
+                        <div class="ex-q">"What is Amazon S3?"</div>
+                    </div>
+                    <!-- 6 -->
+                    <div class="ex-card query">
+                        <div class="ex-head"><span class="ex-num">6</span> Embed Question</div>
+                        <div class="ex-pipe"><span class="ex-box">Question</span><span class="ex-arr">↓</span><span
+                                class="ex-box accent">Titan Embedding</span><span class="ex-arr">↓</span><span
+                                class="ex-box">Query Vector</span></div>
+                    </div>
+                    <!-- 7 -->
+                    <div class="ex-card query">
+                        <div class="ex-head"><span class="ex-num">7</span> Search</div>
+                        <div class="ex-pipe wrap"><span class="ex-box">Query Vector</span><span
+                                class="ex-arr">↓</span><span class="ex-box store">OpenSearch</span><span
+                                class="ex-arr">↓</span><span class="ex-box">Top
+                                3
+                                chunks</span></div>
+                    </div>
+                    <!-- 8 -->
+                    <div class="ex-card query">
+                        <div class="ex-head"><span class="ex-num">8</span> Build Prompt</div>
+                        <div class="ex-rows">
+                            <div><b>Context:</b> <span class="ex-tag hot">Chunk 7</span><span class="ex-tag hot">Chunk
+                                    2</span><span class="ex-tag hot">Chunk 15</span></div>
+                            <div><b>Question:</b> What is Amazon S3?</div>
+                        </div>
+                    </div>
+                    <!-- 9 -->
+                    <div class="ex-card query span2">
+                        <div class="ex-head"><span class="ex-num">9</span> Generate</div>
+                        <div class="ex-pipe"><span class="ex-box">Prompt</span><span class="ex-arr">↓</span><span
+                                class="ex-box accent">Bedrock LLM</span><span class="ex-arr">↓</span><span
+                                class="ex-box" style="border-color:var(--green);color:var(--green)">Final Answer</span>
+                        </div>
+                        <div class="ex-answer">Amazon S3 is an AWS object storage service that stores data as objects
+                            inside
+                            buckets and offers multiple storage classes for different access needs.</div>
+                    </div>
+                </div>
+
+                <!-- Why OpenSearch -->
+                <h2 class="why-title">Why do we need OpenSearch?</h2>
+                <p class="lead">The embedding model only turns text into numbers. Something has to <b>keep</b> those
+                    vectors
+                    and <b>find</b> the closest ones fast. That is OpenSearch. Follow the same question through it.</p>
+
+                <div class="why-grid">
+                    <div class="why-card">
+                        <div class="why-h"><span class="why-ic bad">✕</span> Without OpenSearch</div>
+                        <p>You would hold all <b>100</b> vectors in memory and compare the query against every one on
+                            each
+                            request — slow, and lost the moment the app restarts. And you would still need the original
+                            chunk <i>text</i> to send to the LLM, which a bare vector does not carry.</p>
+                    </div>
+                    <div class="why-card ok">
+                        <div class="why-h"><span class="why-ic good">✓</span> With OpenSearch</div>
+                        <p>It <b>stores</b> each chunk's text + vector together, runs <b>k-NN similarity search</b> in
+                            milliseconds, scales past millions of chunks, and hands back the actual text — so the LLM
+                            gets
+                            real context, not raw numbers.</p>
+                    </div>
+                </div>
+
+                <div class="why-flow">
+                    <div class="why-step">
+                        <span class="ex-num">1</span>
+                        <div><b>Query vector arrives</b><br><span class="mono">[0.11, 0.22, 0.54, …]</span></div>
+                    </div>
+                    <div class="why-arr">↓</div>
+                    <div class="why-step">
+                        <span class="ex-num">2</span>
+                        <div><b>OpenSearch k-NN compares</b> it to all stored vectors and ranks them by similarity score
+                        </div>
+                    </div>
+                    <div class="why-arr">↓</div>
+                    <div class="why-step">
+                        <span class="ex-num">3</span>
+                        <div><b>Top matches come back with their text</b>
+                            <div class="why-hits">
+                                <span>Chunk 7 — <span class="mono">0.92</span> — "Amazon S3 is an object storage
+                                    service…"</span>
+                                <span>Chunk 2 — <span class="mono">0.88</span> — "S3 stores data as objects in
+                                    buckets…"</span>
+                                <span>Chunk 15 — <span class="mono">0.83</span> — "S3 offers multiple storage
+                                    classes…"</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="why-arr">↓</div>
+                    <div class="why-step">
+                        <span class="ex-num">4</span>
+                        <div><b>That text becomes the LLM's context</b> — the model answers only from these retrieved
+                            chunks
                         </div>
                     </div>
                 </div>
 
-                <div class="hl-divider">Ingestion side</div>
+                <div class="why-note">In one line: <b>Embedding</b> = turn meaning into numbers · <b>OpenSearch</b> =
+                    store
+                    the numbers and find the closest ones · <b>LLM</b> = write the answer from what OpenSearch returned.
+                </div>
+            </section>
 
-                <div class="hl-node n-user">
-                    <div class="hl-ic">📄</div>
-                    <div class="hl-t">Admin uploads docs</div>
-                </div>
-                <div class="hl-c"><span class="hl-num">6</span> put object</div>
-                <div class="hl-node">
-                    <div class="hl-ic"><img
-                            src="https://awsfundamentals.com/assets/aws-icons/Arch_Amazon-Simple-Storage-Service_64.svg"
-                            alt="S3"></div>
-                    <div class="hl-t">S3 bucket</div>
-                </div>
-                <div class="hl-c"><span class="hl-num">7</span> triggers</div>
-                <div class="hl-node">
-                    <div class="hl-ic"><img src="https://awsfundamentals.com/assets/aws-icons/Arch_AWS-Lambda_64.svg"
-                            alt="Lambda"></div>
-                    <div class="hl-t">Lambda (ingest)</div>
-                </div>
-                <div class="hl-c"><span class="hl-num">8</span> embed</div>
-                <div class="hl-node">
-                    <div class="hl-ic"><img
-                            src="https://awsfundamentals.com/assets/aws-icons/Arch_Amazon-Bedrock_64.svg" alt="Bedrock">
+            <!-- ===================== DEPLOY (CI/CD + infra) ===================== -->
+            <section class="view" id="deploy">
+                <h1>Deployment <span>Flow</span> — one click to live</h1>
+                <p class="lead">Run the <b>fde-rag-deployment</b> workflow with <b>apply</b>. GitHub Actions assumes an
+                    AWS
+                    role via OIDC, builds the two images, pushes them to ECR, and Terraform provisions the whole stack.
+                    When it finishes you open the load balancer URL and test the UI.</p>
+
+                <!-- Phase A: CI -->
+                <h2 class="dep-phase ci">① CI — build &amp; push images</h2>
+                <div class="dep-row">
+                    <div class="dep-node">
+                        <div class="dep-tile gh">
+                            <svg viewBox="0 0 24 24" fill="#fff">
+                                <path
+                                    d="M12 2A10 10 0 0 0 8.8 21.5c.5.1.7-.2.7-.5v-1.7c-2.8.6-3.4-1.3-3.4-1.3-.5-1.2-1.1-1.5-1.1-1.5-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.5 2.3 1.1 2.9.8.1-.6.3-1.1.6-1.3-2.2-.300-4.6-1.1-4.6-4.9 0-1.1.4-2 1-2.7-.1-.3-.4-1.3.1-2.7 0 0 .8-.3 2.7 1a9.4 9.4 0 0 1 5 0c1.9-1.3 2.7-1 2.7-1 .5 1.4.2 2.4.1 2.7.6.7 1 1.6 1 2.7 0 3.8-2.3 4.6-4.6 4.9.4.3.7.9.7 1.9v2.8c0 .3.2.6.7.5A10 10 0 0 0 12 2z" />
+                            </svg>
+                        </div>
+                        <div class="dep-label">GitHub Actions</div>
+                        <div class="dep-sub">manual run: apply</div>
                     </div>
-                    <div class="hl-t">Bedrock Titan</div>
-                </div>
-                <div class="hl-c"><span class="hl-num">9</span> index text+vector</div>
-                <div class="hl-node">
-                    <div class="hl-ic"><img
-                            src="https://awsfundamentals.com/assets/aws-icons/Arch_Amazon-OpenSearch-Service_64.svg"
-                            alt="OpenSearch"></div>
-                    <div class="hl-t">OpenSearch</div>
-                </div>
-            </div>
-            <p class="lead" style="margin-top:1.2rem"><b>Query side</b> = 1→5 (ask → answer). <b>Ingestion side</b> =
-                6→9 (upload → searchable). Both meet at OpenSearch.</p>
-        </section>
-
-        <!-- ===================== CODE FLOW (frontend <-> backend) ===================== -->
-        <section class="view" id="codeflow">
-            <h1>Code Flow <span>— frontend ↔ backend</span></h1>
-            <p class="lead">What the code actually does. The React app never talks to AWS directly — it calls the
-                FastAPI backend, which does the AWS work. Follow 1 → 7.</p>
-
-            <div class="cf">
-                <div class="cf-col">
-                    <div class="cf-head fe">Frontend · React (Vite + TS)</div>
-                    <div class="cf-box"><code>Ask.tsx</code><br>user types a question, clicks Send</div>
-                    <div class="cf-box"><code>api/client.ts</code><br><b>POST /api/query</b> with <code>x-api-key</code>
+                    <span class="dep-arr" data-step="1">→</span>
+                    <div class="dep-node">
+                        <div class="dep-tile key">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path
+                                    d="M21 2l-2 2m-7.6 7.6a5.5 5.5 0 1 1-7.8 7.8 5.5 5.5 0 0 1 7.8-7.8zM15.5 7.5l3 3L22 7l-3-3" />
+                            </svg>
+                        </div>
+                        <div class="dep-label">AWS OIDC</div>
+                        <div class="dep-sub">assume role, no keys</div>
                     </div>
-                    <div class="cf-box last"><code>markdown.ts</code><br>renders the answer + citations</div>
-                </div>
-
-                <div class="cf-mid">
-                    <div class="cf-step"><span class="hl-num">1</span> POST /query</div>
-                    <div class="cf-step down"><span class="hl-num">7</span> JSON answer</div>
-                </div>
-
-                <div class="cf-col">
-                    <div class="cf-head be">Backend · FastAPI (Python)</div>
-                    <div class="cf-box"><code>main.py</code> <span class="hl-num">2</span><br>checks API key, validates
-                        request</div>
-                    <div class="cf-box"><code>retrieval/search.py</code> <span class="hl-num">3</span><br>embed question
-                        → <b>hybrid search</b> in OpenSearch</div>
-                    <div class="cf-box"><code>retrieval/rag.py</code> <span class="hl-num">4</span><br>build prompt from
-                        top-K chunks</div>
-                    <div class="cf-box"><span class="hl-num">5</span> call <b>Bedrock LLM</b> (Converse API)</div>
-                    <div class="cf-box last"><span class="hl-num">6</span> return answer + citations JSON</div>
-                </div>
-            </div>
-            <p class="lead" style="margin-top:1.2rem">The same backend also serves the built React files, so one ECS
-                container is both the API and the website. <code>/stats</code> powers the dashboards;
-                <code>/ingest</code>
-                and the Lambda share the <code>ingestion/</code> code.
-            </p>
-        </section>
-
-        <!-- ===================== TRACE (one message end to end) ===================== -->
-        <section class="view" id="trace">
-            <h1>Trace <span>— one message, end to end</span></h1>
-            <p class="lead">Example: a user types <b>"Who does Yaswanth Reddy report to?"</b>. Here is every hop that
-                message takes.</p>
-
-            <div class="tr">
-                <div class="tr-step"><span class="tr-n">1</span>
-                    <div><b>Browser</b> — React <code>Ask.tsx</code> sends <code>POST /api/query</code> with the
-                        question</div>
-                </div>
-                <div class="tr-step"><span class="tr-n">2</span>
-                    <div><b>ALB</b> — routes the request to a healthy ECS task</div>
-                </div>
-                <div class="tr-step"><span class="tr-n">3</span>
-                    <div><b>FastAPI</b> — verifies <code>x-api-key</code>, then calls the retrieval layer</div>
-                </div>
-                <div class="tr-step"><span class="tr-n">4</span>
-                    <div><b>Bedrock Titan</b> — turns the question into a <code>[0.11, 0.22, …]</code> query vector
+                    <span class="dep-arr" data-step="2">→</span>
+                    <div class="dep-node">
+                        <div class="dep-tile w"><img
+                                src="https://awsfundamentals.com/assets/aws-icons/Arch_Amazon-Elastic-Container-Registry_64.svg"
+                                alt="ECR"></div>
+                        <div class="dep-label">ECR</div>
+                        <div class="dep-sub">api + ingest images</div>
                     </div>
                 </div>
-                <div class="tr-step"><span class="tr-n">5</span>
-                    <div><b>OpenSearch</b> — k-NN + keyword search returns the top chunks, e.g. the directory row for
-                        <i>Yaswanth Reddy</i>
-                    </div>
-                </div>
-                <div class="tr-step"><span class="tr-n">6</span>
-                    <div><b>FastAPI (rag.py)</b> — builds a prompt: the retrieved chunks + the question</div>
-                </div>
-                <div class="tr-step"><span class="tr-n">7</span>
-                    <div><b>Bedrock LLM</b> — reads the context and writes the answer</div>
-                </div>
-                <div class="tr-step answer"><span class="tr-n">8</span>
-                    <div><b>Back to the browser</b> — "Yaswanth Reddy reports to <b>Marcus Vance</b>." with a citation
-                        to the employee directory ✅</div>
-                </div>
-            </div>
 
-            <div class="tr-ingest">
-                <h2 class="dep-phase run">And if you upload a new document?</h2>
-                <div class="tr-step"><span class="tr-n">A</span>
-                    <div>You drop <code>new-policy.pdf</code> into the <b>S3</b> bucket under <code>uploads/</code>
+                <div class="dep-connect">↓ Terraform apply</div>
+
+                <!-- Phase B: Terraform provisions -->
+                <h2 class="dep-phase tf">② Terraform — provision the stack</h2>
+                <div class="dep-grid">
+                    <div class="dep-card">
+                        <div class="dep-tile w"><img
+                                src="https://awsfundamentals.com/assets/aws-icons/Arch_Amazon-Virtual-Private-Cloud_64.svg"
+                                alt="VPC"></div>
+                        <div class="dep-label">VPC + subnets</div>
+                        <div class="dep-sub">network, NAT, SGs</div>
+                    </div>
+                    <div class="dep-card">
+                        <div class="dep-tile w"><img
+                                src="https://awsfundamentals.com/assets/aws-icons/Arch_Elastic-Load-Balancing_64.svg"
+                                alt="ALB"></div>
+                        <div class="dep-label">ALB</div>
+                        <div class="dep-sub">public entry point</div>
+                    </div>
+                    <div class="dep-card">
+                        <div class="dep-tile w"><img
+                                src="https://awsfundamentals.com/assets/aws-icons/Arch_Amazon-Elastic-Container-Service_64.svg"
+                                alt="ECS"></div>
+                        <div class="dep-label">ECS Fargate</div>
+                        <div class="dep-sub">runs the API + UI</div>
+                    </div>
+                    <div class="dep-card">
+                        <div class="dep-tile w"><img
+                                src="https://awsfundamentals.com/assets/aws-icons/Arch_AWS-Lambda_64.svg" alt="Lambda">
+                        </div>
+                        <div class="dep-label">Lambda</div>
+                        <div class="dep-sub">ingest worker</div>
+                    </div>
+                    <div class="dep-card">
+                        <div class="dep-tile w"><img
+                                src="https://awsfundamentals.com/assets/aws-icons/Arch_Amazon-OpenSearch-Service_64.svg"
+                                alt="OpenSearch"></div>
+                        <div class="dep-label">OpenSearch</div>
+                        <div class="dep-sub">vector index</div>
+                    </div>
+                    <div class="dep-card">
+                        <div class="dep-tile w"><img
+                                src="https://awsfundamentals.com/assets/aws-icons/Arch_Amazon-Simple-Storage-Service_64.svg"
+                                alt="S3"></div>
+                        <div class="dep-label">S3</div>
+                        <div class="dep-sub">documents bucket</div>
+                    </div>
+                    <div class="dep-card">
+                        <div class="dep-tile w"><img
+                                src="https://awsfundamentals.com/assets/aws-icons/Arch_AWS-Secrets-Manager_64.svg"
+                                alt="Secrets Manager"></div>
+                        <div class="dep-label">Secrets Mgr</div>
+                        <div class="dep-sub">API key</div>
+                    </div>
+                    <div class="dep-card">
+                        <div class="dep-tile w"><img
+                                src="https://awsfundamentals.com/assets/aws-icons/Arch_Amazon-Bedrock_64.svg"
+                                alt="Bedrock">
+                        </div>
+                        <div class="dep-label">Bedrock</div>
+                        <div class="dep-sub">embed + LLM</div>
                     </div>
                 </div>
-                <div class="tr-step"><span class="tr-n">B</span>
-                    <div><b>S3 event</b> fires → invokes the <b>Lambda</b> ingest function</div>
+
+                <div class="dep-connect">↓ load data &amp; index</div>
+
+                <!-- Phase C: data + access -->
+                <h2 class="dep-phase run">③ Ingest &amp; access</h2>
+                <div class="dep-steps">
+                    <div class="dep-step"><span class="ex-num">A</span>
+                        <div>Sample docs sync to <b>S3</b> → Lambda embeds them → stored in <b>OpenSearch</b>.</div>
+                    </div>
+                    <div class="dep-step"><span class="ex-num">B</span>
+                        <div>Pipeline waits for <b>ECS</b> to become healthy behind the <b>ALB</b>.</div>
+                    </div>
+                    <div class="dep-step"><span class="ex-num">C</span>
+                        <div>The run prints the <b>Web URL</b> → open it, you see the Yash Academy UI.</div>
+                    </div>
+                    <div class="dep-step"><span class="ex-num">D</span>
+                        <div>Ask a question on the <b>Ask</b> tab → grounded, cited answer. ✅ Tested end to end.</div>
+                    </div>
                 </div>
-                <div class="tr-step"><span class="tr-n">C</span>
-                    <div><b>Lambda</b> loads → chunks → <b>Bedrock Titan</b> embeds each chunk</div>
+
+                <div class="dep-cta">
+                    <div class="dep-cta-item"><span class="dep-pill apply">apply</span> deploys everything above</div>
+                    <div class="dep-cta-item"><span class="dep-pill destroy">destroy</span> empties the bucket &amp;
+                        tears
+                        it all down</div>
                 </div>
-                <div class="tr-step"><span class="tr-n">D</span>
-                    <div>Chunks + vectors are written to <b>OpenSearch</b> — now the new doc is searchable, no redeploy
-                        needed</div>
+            </section>
+
+            <!-- ===================== HIGH-LEVEL ARCHITECTURE ===================== -->
+            <section class="view" id="highlevel">
+                <h1>High-Level <span>Architecture</span> — numbered connections</h1>
+                <p class="lead">Every box is one service. Each arrow is numbered — follow 1 → 9 to see how one tool
+                    hands
+                    off to the next.</p>
+
+                <div class="hl">
+                    <div class="hl-node n-user">
+                        <div class="hl-ic">👤</div>
+                        <div class="hl-t">User (Browser)</div>
+                    </div>
+                    <div class="hl-c"><span class="hl-num">1</span> opens / asks</div>
+
+                    <div class="hl-node">
+                        <div class="hl-ic"><img
+                                src="https://awsfundamentals.com/assets/aws-icons/Arch_Elastic-Load-Balancing_64.svg"
+                                alt="ALB"></div>
+                        <div class="hl-t">ALB (public)</div>
+                    </div>
+                    <div class="hl-c"><span class="hl-num">2</span> forwards HTTP</div>
+
+                    <div class="hl-node">
+                        <div class="hl-ic"><img
+                                src="https://awsfundamentals.com/assets/aws-icons/Arch_Amazon-Elastic-Container-Service_64.svg"
+                                alt="ECS"></div>
+                        <div class="hl-t">ECS Fargate<br><small>React UI + FastAPI</small></div>
+                    </div>
+
+                    <div class="hl-branch">
+                        <div class="hl-leg">
+                            <div class="hl-c"><span class="hl-num">3</span> embed text</div>
+                            <div class="hl-node">
+                                <div class="hl-ic"><img
+                                        src="https://awsfundamentals.com/assets/aws-icons/Arch_Amazon-Bedrock_64.svg"
+                                        alt="Bedrock"></div>
+                                <div class="hl-t">Bedrock<br><small>Titan + LLM</small></div>
+                            </div>
+                        </div>
+                        <div class="hl-leg">
+                            <div class="hl-c"><span class="hl-num">4</span> vector search</div>
+                            <div class="hl-node">
+                                <div class="hl-ic"><img
+                                        src="https://awsfundamentals.com/assets/aws-icons/Arch_Amazon-OpenSearch-Service_64.svg"
+                                        alt="OpenSearch"></div>
+                                <div class="hl-t">OpenSearch</div>
+                            </div>
+                        </div>
+                        <div class="hl-leg">
+                            <div class="hl-c"><span class="hl-num">5</span> read secret</div>
+                            <div class="hl-node">
+                                <div class="hl-ic"><img
+                                        src="https://awsfundamentals.com/assets/aws-icons/Arch_AWS-Secrets-Manager_64.svg"
+                                        alt="Secrets"></div>
+                                <div class="hl-t">Secrets Mgr</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="hl-divider">Ingestion side</div>
+
+                    <div class="hl-node n-user">
+                        <div class="hl-ic">📄</div>
+                        <div class="hl-t">Admin uploads docs</div>
+                    </div>
+                    <div class="hl-c"><span class="hl-num">6</span> put object</div>
+                    <div class="hl-node">
+                        <div class="hl-ic"><img
+                                src="https://awsfundamentals.com/assets/aws-icons/Arch_Amazon-Simple-Storage-Service_64.svg"
+                                alt="S3"></div>
+                        <div class="hl-t">S3 bucket</div>
+                    </div>
+                    <div class="hl-c"><span class="hl-num">7</span> triggers</div>
+                    <div class="hl-node">
+                        <div class="hl-ic"><img
+                                src="https://awsfundamentals.com/assets/aws-icons/Arch_AWS-Lambda_64.svg" alt="Lambda">
+                        </div>
+                        <div class="hl-t">Lambda (ingest)</div>
+                    </div>
+                    <div class="hl-c"><span class="hl-num">8</span> embed</div>
+                    <div class="hl-node">
+                        <div class="hl-ic"><img
+                                src="https://awsfundamentals.com/assets/aws-icons/Arch_Amazon-Bedrock_64.svg"
+                                alt="Bedrock">
+                        </div>
+                        <div class="hl-t">Bedrock Titan</div>
+                    </div>
+                    <div class="hl-c"><span class="hl-num">9</span> index text+vector</div>
+                    <div class="hl-node">
+                        <div class="hl-ic"><img
+                                src="https://awsfundamentals.com/assets/aws-icons/Arch_Amazon-OpenSearch-Service_64.svg"
+                                alt="OpenSearch"></div>
+                        <div class="hl-t">OpenSearch</div>
+                    </div>
                 </div>
-            </div>
-        </section>
-    </main>
+                <p class="lead" style="margin-top:1.2rem"><b>Query side</b> = 1→5 (ask → answer). <b>Ingestion side</b>
+                    =
+                    6→9 (upload → searchable). Both meet at OpenSearch.</p>
+            </section>
+
+            <!-- ===================== CODE FLOW (frontend <-> backend) ===================== -->
+            <section class="view" id="codeflow">
+                <h1>Code Flow <span>— frontend ↔ backend</span></h1>
+                <p class="lead">What the code actually does. The React app never talks to AWS directly — it calls the
+                    FastAPI backend, which does the AWS work. Follow 1 → 7.</p>
+
+                <div class="cf">
+                    <div class="cf-col">
+                        <div class="cf-head fe">Frontend · React (Vite + TS)</div>
+                        <div class="cf-box"><code>Ask.tsx</code><br>user types a question, clicks Send</div>
+                        <div class="cf-box"><code>api/client.ts</code><br><b>POST /api/query</b> with
+                            <code>x-api-key</code>
+                        </div>
+                        <div class="cf-box last"><code>markdown.ts</code><br>renders the answer + citations</div>
+                    </div>
+
+                    <div class="cf-mid">
+                        <div class="cf-step"><span class="hl-num">1</span> POST /query</div>
+                        <div class="cf-step down"><span class="hl-num">7</span> JSON answer</div>
+                    </div>
+
+                    <div class="cf-col">
+                        <div class="cf-head be">Backend · FastAPI (Python)</div>
+                        <div class="cf-box"><code>main.py</code> <span class="hl-num">2</span><br>checks API key,
+                            validates
+                            request</div>
+                        <div class="cf-box"><code>retrieval/search.py</code> <span class="hl-num">3</span><br>embed
+                            question
+                            → <b>hybrid search</b> in OpenSearch</div>
+                        <div class="cf-box"><code>retrieval/rag.py</code> <span class="hl-num">4</span><br>build prompt
+                            from
+                            top-K chunks</div>
+                        <div class="cf-box"><span class="hl-num">5</span> call <b>Bedrock LLM</b> (Converse API)</div>
+                        <div class="cf-box last"><span class="hl-num">6</span> return answer + citations JSON</div>
+                    </div>
+                </div>
+                <p class="lead" style="margin-top:1.2rem">The same backend also serves the built React files, so one ECS
+                    container is both the API and the website. <code>/stats</code> powers the dashboards;
+                    <code>/ingest</code>
+                    and the Lambda share the <code>ingestion/</code> code.
+                </p>
+            </section>
+
+            <!-- ===================== TRACE (one message end to end) ===================== -->
+            <section class="view" id="trace">
+                <h1>Trace <span>— one message, end to end</span></h1>
+                <p class="lead">Example: a user types <b>"Who does Yaswanth Reddy report to?"</b>. Here is every hop
+                    that
+                    message takes.</p>
+
+                <div class="tr">
+                    <div class="tr-step"><span class="tr-n">1</span>
+                        <div><b>Browser</b> — React <code>Ask.tsx</code> sends <code>POST /api/query</code> with the
+                            question</div>
+                    </div>
+                    <div class="tr-step"><span class="tr-n">2</span>
+                        <div><b>ALB</b> — routes the request to a healthy ECS task</div>
+                    </div>
+                    <div class="tr-step"><span class="tr-n">3</span>
+                        <div><b>FastAPI</b> — verifies <code>x-api-key</code>, then calls the retrieval layer</div>
+                    </div>
+                    <div class="tr-step"><span class="tr-n">4</span>
+                        <div><b>Bedrock Titan</b> — turns the question into a <code>[0.11, 0.22, …]</code> query vector
+                        </div>
+                    </div>
+                    <div class="tr-step"><span class="tr-n">5</span>
+                        <div><b>OpenSearch</b> — k-NN + keyword search returns the top chunks, e.g. the directory row
+                            for
+                            <i>Yaswanth Reddy</i>
+                        </div>
+                    </div>
+                    <div class="tr-step"><span class="tr-n">6</span>
+                        <div><b>FastAPI (rag.py)</b> — builds a prompt: the retrieved chunks + the question</div>
+                    </div>
+                    <div class="tr-step"><span class="tr-n">7</span>
+                        <div><b>Bedrock LLM</b> — reads the context and writes the answer</div>
+                    </div>
+                    <div class="tr-step answer"><span class="tr-n">8</span>
+                        <div><b>Back to the browser</b> — "Yaswanth Reddy reports to <b>Marcus Vance</b>." with a
+                            citation
+                            to the employee directory ✅</div>
+                    </div>
+                </div>
+
+                <div class="tr-ingest">
+                    <h2 class="dep-phase run">And if you upload a new document?</h2>
+                    <div class="tr-step"><span class="tr-n">A</span>
+                        <div>You drop <code>new-policy.pdf</code> into the <b>S3</b> bucket under <code>uploads/</code>
+                        </div>
+                    </div>
+                    <div class="tr-step"><span class="tr-n">B</span>
+                        <div><b>S3 event</b> fires → invokes the <b>Lambda</b> ingest function</div>
+                    </div>
+                    <div class="tr-step"><span class="tr-n">C</span>
+                        <div><b>Lambda</b> loads → chunks → <b>Bedrock Titan</b> embeds each chunk</div>
+                    </div>
+                    <div class="tr-step"><span class="tr-n">D</span>
+                        <div>Chunks + vectors are written to <b>OpenSearch</b> — now the new doc is searchable, no
+                            redeploy
+                            needed</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===================== DEPLOY STEPS ===================== -->
+            <section class="view" id="steps">
+                <h1>Deployment <span>Steps</span></h1>
+                <p class="lead">Do these once in the AWS Console, set the GitHub variables, then run the workflow.
+                    Nothing else.</p>
+
+                <div class="st">
+                    <div class="st-row">
+                        <span class="st-n">1</span>
+                        <div class="st-body">
+                            <b>Create an S3 bucket</b> for the Terraform state (enable Versioning).
+                        </div>
+                    </div>
+
+                    <div class="st-row">
+                        <span class="st-n">2</span>
+                        <div class="st-body">
+                            <b>Create the IAM OIDC role</b> for GitHub Actions:
+                            <ul>
+                                <li>IAM → Identity providers → Add provider → <b>OpenID Connect</b></li>
+                                <li>Provider URL: <code>https://token.actions.githubusercontent.com</code> · Audience:
+                                    <code>sts.amazonaws.com</code>
+                                </li>
+                                <li>IAM → Roles → Create role → <b>Web identity</b> → pick that provider + your repo
+                                </li>
+                                <li>Attach <b>AdministratorAccess</b> → name it <code>github-rag-deploy</code> → copy
+                                    its ARN</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="st-row">
+                        <span class="st-n">3</span>
+                        <div class="st-body">
+                            <b>Set GitHub Actions variables</b> (Settings → Secrets and variables → Actions →
+                            <b>Variables</b>):
+                            <table class="st-tbl">
+                                <tr>
+                                    <td><code>AWS_REGION</code></td>
+                                    <td>e.g. <code>us-east-1</code></td>
+                                </tr>
+                                <tr>
+                                    <td><code>AWS_OIDC_ROLE_ARN</code></td>
+                                    <td>the role ARN from step 2</td>
+                                </tr>
+                                <tr>
+                                    <td><code>TF_STATE_BUCKET</code></td>
+                                    <td>the bucket name from step 1</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="st-row done">
+                        <span class="st-n">▶</span>
+                        <div class="st-body">
+                            <b>Run it:</b> Actions → <code>fde-rag-deployment</code> → Run workflow → choose
+                            <span class="dep-pill apply">apply</span> to deploy or
+                            <span class="dep-pill destroy">destroy</span> to tear down. The <b>Web URL</b> prints in the
+                            run summary. That's it.
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
 
     <footer>Yash Academy · Enterprise RAG Platform</footer>
 
     <script>
         const tabs = document.querySelectorAll(".tab"), views = document.querySelectorAll(".view");
-        tabs.forEach(t => t.addEventListener("click", () => {
-            tabs.forEach(x => x.classList.remove("active")); views.forEach(v => v.classList.remove("active"));
-            t.classList.add("active"); document.getElementById(t.dataset.view).classList.add("active");
+
+        function show(view) {
+            tabs.forEach(x => x.classList.toggle("active", x.dataset.view === view));
+            views.forEach(v => v.classList.toggle("active", v.id === view));
             window.scrollTo({ top: 0, behavior: "smooth" });
-        }));
+        }
+
+        // Sidebar tabs
+        tabs.forEach(t => t.addEventListener("click", () => show(t.dataset.view)));
+
+        // Home page quick-links jump to a view
+        document.querySelectorAll(".home-link").forEach(b =>
+            b.addEventListener("click", () => show(b.dataset.goto))
+        );
     </script>
 </body>
 
