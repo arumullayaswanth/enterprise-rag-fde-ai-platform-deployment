@@ -32,9 +32,9 @@ resource "aws_lambda_function" "ingest" {
   role          = var.ingest_role_arn
   package_type  = "Image"
   image_uri     = var.ingest_image
-  # 15 minutes: a full reindex embeds every chunk one by one, and with retry
-  # backoff on a low Bedrock quota that can take several minutes.
-  timeout     = 900
+  # 3 minutes. Embedding fails fast on throttling, so a run does not need the
+  # 15-minute max; this caps wasted billing when the Bedrock quota is exhausted.
+  timeout     = 180
   memory_size = 1024
 
   vpc_config {

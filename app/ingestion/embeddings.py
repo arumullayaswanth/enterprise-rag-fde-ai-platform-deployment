@@ -27,10 +27,10 @@ logger = logging.getLogger(__name__)
 # the throttle for minutes), plus a small pace between calls. Adaptive botocore
 # retries sit underneath. If a chunk still cannot embed after the retries, we
 # skip it rather than aborting the whole ingest (see embed_batch).
-EMBED_MAX_RETRIES = int(os.getenv("EMBED_MAX_RETRIES", "5"))
+EMBED_MAX_RETRIES = int(os.getenv("EMBED_MAX_RETRIES", "3"))
 EMBED_RETRY_BASE = float(os.getenv("EMBED_RETRY_BASE", "1.0"))
-EMBED_RETRY_CAP = float(os.getenv("EMBED_RETRY_CAP", "8.0"))
-EMBED_CALL_DELAY = float(os.getenv("EMBED_CALL_DELAY", "0.2"))
+EMBED_RETRY_CAP = float(os.getenv("EMBED_RETRY_CAP", "4.0"))
+EMBED_CALL_DELAY = float(os.getenv("EMBED_CALL_DELAY", "0.1"))
 # When true, a chunk that still throttles after all retries is skipped (its
 # vector is dropped) instead of raising and failing the whole deploy.
 EMBED_SKIP_ON_THROTTLE = os.getenv("EMBED_SKIP_ON_THROTTLE", "true").lower() != "false"
@@ -46,11 +46,14 @@ def _client():
     # Adaptive mode makes botocore itself slow down and retry when Bedrock
     # throttles, with many attempts. This is the first line of defence against
     # ThrottlingException; our own loop below is the backstop.
-    max_attempts = int(os.getenv("BEDROCK_MAX_ATTEMPTS", "10"))
+    # Low max_attempts so a throttled call fails fast instead of botocore
+    # retrying for many seconds under adaptive mode. Our own small loop handles
+    # the retry/skip. This keeps a throttled Lambda from running the full 15 min.
+    max_attempts = int(os.getenv("BEDROCK_MAX_ATTEMPTS", "2"))
     return boto3.client(
         "bedrock-runtime",
         region_name=AWS_REGION,
-        config=Config(retries={"max_attempts": max_attempts, "mode": "adaptive"}),
+        config=Config(retries={"max_attempts": max_attempts, "mode": "standard"}),
     )
 
 
