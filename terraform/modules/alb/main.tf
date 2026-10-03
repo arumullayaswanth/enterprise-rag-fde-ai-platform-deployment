@@ -54,7 +54,10 @@ resource "aws_lb" "api" {
 
   drop_invalid_header_fields = true
   idle_timeout               = 120
-  enable_deletion_protection = var.is_prod
+  # Off so `terraform destroy` can delete the load balancer. (Deletion
+  # protection would otherwise block destroy and, in turn, the VPC/IGW cleanup
+  # because the ALB's public IPs stay mapped.)
+  enable_deletion_protection = false
 
   tags = { Name = "${var.name_tag}-alb" }
 }

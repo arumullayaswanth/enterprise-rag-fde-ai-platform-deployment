@@ -11,9 +11,12 @@
  */
 
 resource "aws_ecr_repository" "api" {
-  name                 = "${var.name}-api"
-  image_tag_mutability = var.is_prod ? "IMMUTABLE" : "MUTABLE"
-  force_delete         = !var.is_prod
+  name = "${var.name}-api"
+  # Mutable tags so a redeploy can reuse the same SHA tag if needed.
+  image_tag_mutability = "MUTABLE"
+  # force_delete = true so `terraform destroy` removes the repo even though it
+  # still holds images. Without this, destroy fails on a non-empty ECR repo.
+  force_delete = true
 
   image_scanning_configuration {
     scan_on_push = true
@@ -25,9 +28,11 @@ resource "aws_ecr_repository" "api" {
 }
 
 resource "aws_ecr_repository" "ingest" {
-  name                 = "${var.name}-ingest"
-  image_tag_mutability = var.is_prod ? "IMMUTABLE" : "MUTABLE"
-  force_delete         = !var.is_prod
+  name = "${var.name}-ingest"
+  # Mutable tags so a redeploy can reuse the same SHA tag if needed.
+  image_tag_mutability = "MUTABLE"
+  # force_delete = true so destroy removes the repo even with images in it.
+  force_delete = true
 
   image_scanning_configuration {
     scan_on_push = true

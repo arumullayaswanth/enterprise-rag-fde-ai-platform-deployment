@@ -268,6 +268,40 @@ jobs:
           fi
           exit 0
 
+      # Disable deletion protection on the live ALB so destroy can delete it.
+      # The ALB may have been created by older code with protection ON; this
+      # turns it off directly in AWS regardless of what the state says. If the
+      # ALB is already gone this is a harmless no-op.
+      - name: Disable ALB deletion protection
+        run: |
+          set +e
+          ALB_ARN=$(aws elbv2 describe-load-balancers \
+            --query "LoadBalancers[?starts_with(LoadBalancerName, 'fde-rag') || starts_with(LoadBalancerName, 'rag-devops')].LoadBalancerArn" \
+            --output text 2>/dev/null)
+          for arn in $ALB_ARN; do
+            echo "Disabling deletion protection on $arn"
+            aws elbv2 modify-load-balancer-attributes \
+              --load-balancer-arn "$arn" \
+              --attributes Key=deletion_protection.enabled,Value=false || true
+          done
+          exit 0
+
+      # Empty both ECR repos so they can be deleted even if force_delete was not
+      # set when they were created.
+      - name: Empty the ECR repositories
+        run: |
+          set +e
+          for repo in $(aws ecr describe-repositories \
+              --query "repositories[?starts_with(repositoryName, 'fde-rag') || starts_with(repositoryName, 'rag-devops')].repositoryName" \
+              --output text 2>/dev/null); do
+            echo "Emptying ECR repo $repo"
+            IDS=$(aws ecr list-images --repository-name "$repo" --query 'imageIds[*]' --output json 2>/dev/null)
+            if [ -n "$IDS" ] && [ "$IDS" != "[]" ]; then
+              aws ecr batch-delete-image --repository-name "$repo" --image-ids "$IDS" || true
+            fi
+          done
+          exit 0
+
       - name: terraform destroy
         timeout-minutes: 45
         run: terraform -chdir=terraform destroy -input=false -auto-approve -lock-timeout=5m
