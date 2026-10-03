@@ -51,6 +51,20 @@ export async function health(): Promise<{ status: string }> {
     return parse(await fetch(`${BASE}/health`));
 }
 
+// Fetch the API key from the backend on load, so the UI authenticates itself
+// automatically — no manual paste. If a user already saved a key, keep theirs.
+export async function bootstrapApiKey(): Promise<void> {
+    if (getApiKey()) return; // user already has one saved
+    try {
+        const res = await fetch(`${BASE}/config`);
+        if (!res.ok) return;
+        const cfg = (await res.json()) as { require_auth?: boolean; api_key?: string };
+        if (cfg.require_auth && cfg.api_key) setApiKey(cfg.api_key);
+    } catch {
+        /* backend not reachable yet; the API-key button is still available */
+    }
+}
+
 export async function fetchStats(): Promise<Stats> {
     return parse<Stats>(await fetch(`${BASE}/stats`, { headers: headers() }));
 }

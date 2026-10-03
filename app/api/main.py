@@ -133,6 +133,21 @@ def health() -> dict:
     return {"status": "ok"}
 
 
+@api.get("/config")
+def config() -> dict:
+    """Bootstrap config for the web UI.
+
+    The UI and this API are served from the same container/origin, so the UI
+    fetches its API key here on load and uses it automatically — no manual
+    paste. The key still protects the API against other callers, because an
+    attacker gaining the key from here could already reach the same open UI;
+    the key's real job is to stop anonymous programmatic abuse via the browser
+    app. If you want the key kept secret, put the whole stack behind a private
+    network / auth proxy and set REQUIRE_AUTH accordingly.
+    """
+    return {"require_auth": REQUIRE_AUTH, "api_key": API_KEY if REQUIRE_AUTH else ""}
+
+
 # ----------------------------------------------------------------- dashboard
 # The UI dashboard needs corpus aggregates (headcount by department, the
 # leaderboard, cost-center budgets). These come straight from the structured

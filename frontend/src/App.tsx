@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { health } from "./api/client";
+import { health, bootstrapApiKey } from "./api/client";
 import { Dashboard } from "./pages/Dashboard";
 import { Directory } from "./pages/Directory";
 import { Leaderboard } from "./pages/Leaderboard";
@@ -51,9 +51,12 @@ export function App() {
     const [healthy, setHealthy] = useState<"pending" | "ok" | "err">("pending");
 
     useEffect(() => {
-        health()
-            .then(() => setHealthy("ok"))
-            .catch(() => setHealthy("err"));
+        // Pull the API key from the backend automatically, then check health.
+        bootstrapApiKey().finally(() => {
+            health()
+                .then(() => setHealthy("ok"))
+                .catch(() => setHealthy("err"));
+        });
     }, []);
 
     const page = PAGES[route];
