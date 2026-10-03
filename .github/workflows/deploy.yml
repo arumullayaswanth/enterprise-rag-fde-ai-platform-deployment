@@ -163,7 +163,11 @@ jobs:
           if [ "$(jq -r '.indexed // 0' result.json)" -lt 1 ]; then
             echo "::error::No passages were indexed"; exit 1
           fi
-          echo "Indexed $(jq -r .indexed result.json) passages."
+          SKIPPED=$(jq -r '.skipped // 0' result.json)
+          echo "Indexed $(jq -r .indexed result.json) passages (skipped ${SKIPPED} due to throttling)."
+          if [ "$SKIPPED" -gt 0 ]; then
+            echo "::warning::${SKIPPED} chunks were skipped due to Bedrock throttling. Request a quota increase for Titan embeddings to index everything."
+          fi
 
       - name: Show where it is
         run: |

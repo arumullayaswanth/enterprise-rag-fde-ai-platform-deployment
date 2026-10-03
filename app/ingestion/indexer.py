@@ -132,14 +132,31 @@ def index_chunks(
     embedder = embedder or get_embedder()
     ensure_index(client, index)
 
-    vectors = embedder.embed_batch([c.text for c in chunks])
+    # One slot per chunk; a slot is None if that chunk could not be embedded
+    # (throttled out). Keep only the chunks whose embedding succeeded, so a few
+    # throttled chunks do not fail the whole ingest.
+    raw_vectors = embedder.embed_batch_indexed([c.text for c in chunks])
+    paired = [(c, v) for c, v in zip(chunks, raw_vectors) if v is not None]
+    skipped = len(chunks) - len(paired)
+
+    if not paired:
+        return {"indexed": 0, "failed": 0, "skipped": skipped, "index": index}
+
+    ok_chunks = [c for c, _ in paired]
+    ok_vectors = [v for _, v in paired]
     success, errors = helpers.bulk(
         client,
-        to_actions(chunks, vectors, index),
+        to_actions(ok_chunks, ok_vectors, index),
         raise_on_error=False,
         refresh=True,
     )
-    return {"indexed": success, "failed": len(errors), "index": index, "errors": errors[:5]}
+    return {
+        "indexed": success,
+        "failed": len(errors),
+        "skipped": skipped,
+        "index": index,
+        "errors": errors[:5],
+    }
 
 
 def reindex_prefix(
