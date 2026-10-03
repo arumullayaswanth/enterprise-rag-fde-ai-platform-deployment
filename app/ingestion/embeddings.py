@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+import random
 import time
 from typing import Sequence
 
@@ -14,6 +15,15 @@ from botocore.exceptions import ClientError
 EMBED_MODEL_ID = os.getenv("EMBED_MODEL_ID", "amazon.titan-embed-text-v2:0")
 EMBED_DIMENSION = int(os.getenv("EMBED_DIMENSION", "1024"))
 AWS_REGION = os.getenv("AWS_REGION", "us-east-1")
+
+# Throttling controls (tunable via env, no code change needed).
+# Bedrock rate-limits InvokeModel per account. More retries with longer capped
+# backoff rides out ThrottlingException; a small inter-call delay keeps the
+# request rate under the limit in the first place.
+EMBED_MAX_RETRIES = int(os.getenv("EMBED_MAX_RETRIES", "8"))
+EMBED_RETRY_BASE = float(os.getenv("EMBED_RETRY_BASE", "1.0"))
+EMBED_RETRY_CAP = float(os.getenv("EMBED_RETRY_CAP", "30.0"))
+EMBED_CALL_DELAY = float(os.getenv("EMBED_CALL_DELAY", "0.1"))
 
 _THROTTLE_CODES = {"ThrottlingException", "TooManyRequestsException", "ServiceUnavailableException"}
 
@@ -52,7 +62,8 @@ class Embedder:
             body["dimensions"] = self.dimension
             body["normalize"] = True
 
-        for attempt in range(4):
+        last = EMBED_MAX_RETRIES - 1
+        for attempt in range(EMBED_MAX_RETRIES):
             try:
                 response = self.client.invoke_model(
                     modelId=self.model_id,
@@ -63,9 +74,12 @@ class Embedder:
                 break
             except ClientError as exc:
                 code = exc.response.get("Error", {}).get("Code", "")
-                if code not in _THROTTLE_CODES or attempt == 3:
+                if code not in _THROTTLE_CODES or attempt == last:
                     raise
-                time.sleep(2**attempt)
+                # Capped exponential backoff with jitter, so many parallel
+                # callers do not retry in lockstep and keep re-throttling.
+                delay = min(EMBED_RETRY_BASE * (2**attempt), EMBED_RETRY_CAP)
+                time.sleep(delay + random.uniform(0, delay * 0.25))
 
         payload = json.loads(response["body"].read())
         vector = payload.get("embedding") or payload.get("embeddings", [None])[0]
@@ -80,6 +94,10 @@ class Embedder:
         for start in range(0, len(texts), batch_size):
             for text in texts[start : start + batch_size]:
                 vectors.append(self.embed_text(text))
+                # Small pace between calls keeps the request rate under the
+                # account's Bedrock limit so throttling is rare, not just handled.
+                if EMBED_CALL_DELAY > 0:
+                    time.sleep(EMBED_CALL_DELAY)
         return vectors
 
 

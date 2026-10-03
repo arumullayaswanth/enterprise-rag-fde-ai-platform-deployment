@@ -1232,6 +1232,53 @@
             margin-top: 1.6rem;
         }
 
+        /* ===== story (plain-english flow) ===== */
+        .story {
+            max-width: 760px;
+            background: var(--glass);
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            padding: 1.6rem 1.8rem;
+        }
+
+        .story-h {
+            font-size: 1.1rem;
+            font-weight: 800;
+            letter-spacing: -.01em;
+            margin: 1.6rem 0 .5rem;
+            color: var(--violet-2);
+        }
+
+        .story-h:first-child {
+            margin-top: 0;
+        }
+
+        .story p {
+            color: var(--ink-soft);
+            font-size: .96rem;
+            line-height: 1.75;
+            margin: .5rem 0;
+        }
+
+        .story b {
+            color: var(--ink);
+        }
+
+        .story i {
+            color: var(--cyan);
+            font-style: normal;
+        }
+
+        .story-final {
+            margin-top: .5rem !important;
+            padding: .9rem 1.1rem;
+            border-left: 3px solid var(--violet);
+            background: rgba(139, 92, 246, .1);
+            border-radius: 0 10px 10px 0;
+            color: var(--ink) !important;
+            font-weight: 600;
+        }
+
         /* ===== deploy steps ===== */
         .st {
             display: flex;
@@ -1299,6 +1346,26 @@
         .st-tbl td:first-child {
             color: var(--cyan);
             font-family: var(--mono);
+        }
+
+        .st-note {
+            margin: .7rem 0 .4rem;
+            font-size: .88rem;
+            color: var(--ink-soft);
+        }
+
+        .st-code {
+            margin: 0;
+            background: #05070e;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: .9rem 1rem;
+            font-family: var(--mono);
+            font-size: .76rem;
+            line-height: 1.5;
+            color: var(--cyan);
+            overflow-x: auto;
+            white-space: pre;
         }
 
         footer {
@@ -1630,51 +1697,88 @@
             </section>
 
             <section class="view" id="flow">
-                <h1>Step <span>by step</span></h1>
-                <p class="lead">The same journey, written out plainly.</p>
-                <div class="steps">
-                    <div class="srow">
-                        <div class="snum">1</div>
-                        <div>
-                            <h3>Upload &amp; chunk</h3>
-                            <p>Documents land in S3; a Lambda splits them into small chunks.</p>
-                        </div>
-                    </div>
-                    <div class="srow">
-                        <div class="snum">2</div>
-                        <div>
-                            <h3>Embed</h3>
-                            <p>Amazon Bedrock (Titan) turns each chunk into a vector.</p>
-                        </div>
-                    </div>
-                    <div class="srow">
-                        <div class="snum">3</div>
-                        <div>
-                            <h3>Store</h3>
-                            <p>Chunk text + vector are saved in the OpenSearch vector index.</p>
-                        </div>
-                    </div>
-                    <div class="srow">
-                        <div class="snum">4</div>
-                        <div>
-                            <h3>Ask</h3>
-                            <p>A user asks a question; it is embedded into a query vector.</p>
-                        </div>
-                    </div>
-                    <div class="srow">
-                        <div class="snum">5</div>
-                        <div>
-                            <h3>Search</h3>
-                            <p>OpenSearch returns the Top-K most similar chunks.</p>
-                        </div>
-                    </div>
-                    <div class="srow">
-                        <div class="snum">6</div>
-                        <div>
-                            <h3>Answer</h3>
-                            <p>The LLM reads those chunks and writes a grounded, cited answer.</p>
-                        </div>
-                    </div>
+                <h1>The whole story <span>— in plain English</span></h1>
+                <p class="lead">No jargon. Just read top to bottom and you'll understand exactly what this project does
+                    and what happens behind the scenes.</p>
+
+                <div class="story">
+                    <h2 class="story-h">1 · What problem are we solving?</h2>
+                    <p>A normal chatbot makes things up when it doesn't know an answer. We don't want that. We want a
+                        system that answers questions <b>only from our own company documents</b> — and tells you which
+                        document it got the answer from. That is what "RAG" means: it <b>Retrieves</b> the right
+                        information first, then <b>Generates</b> an answer from it. No guessing.</p>
+
+                    <h2 class="story-h">2 · First, we teach the system our documents (ingestion)</h2>
+                    <p>Before anyone can ask anything, the system has to read and remember our documents. Here is how
+                        that happens, step by step:</p>
+                    <p>Someone uploads a file (a PDF, a Word-like doc, a spreadsheet of employees) into an
+                        <b>S3 bucket</b> — think of S3 as a big, safe folder in the cloud. The moment a file lands
+                        there, it automatically wakes up a small program called a <b>Lambda</b> (a function that runs
+                        only when needed, then goes back to sleep — so it's cheap).
+                    </p>
+                    <p>The Lambda does three things. First it <b>splits</b> the document into small bite-sized pieces
+                        called "chunks," because a whole 50-page PDF is too big to work with at once. Then it sends each
+                        chunk to <b>Amazon Bedrock</b> (AWS's AI service) and asks it to turn the text into a list of
+                        numbers called a <b>vector</b>. That sounds strange, but a vector is just the "meaning" of the
+                        text written as numbers — two chunks about the same topic get similar numbers. Finally, it
+                        saves both the original text <b>and</b> its vector into <b>OpenSearch</b>, which is a special
+                        database built to search by meaning, not just keywords.</p>
+                    <p>After this runs, our documents are "learned" and searchable. We only do this once per document.
+                    </p>
+
+                    <h2 class="story-h">3 · Now a user asks a question (the live part)</h2>
+                    <p>A user opens the website and types something like <i>"Who does Yaswanth Reddy report to?"</i> and
+                        hits send.</p>
+                    <p>That request travels to a <b>load balancer</b> (the public front door that keeps traffic
+                        organized), which passes it to our application running on <b>ECS Fargate</b> — this is just a
+                        container in the cloud running our code, with no servers for us to manage. The front end is
+                        <b>React</b> (what you see and click); the back end is <b>FastAPI</b> in Python (the brain that
+                        does the work). Both live in the same container.
+                    </p>
+                    <p>The back end takes the question and sends it to Bedrock to turn it into a vector too — the exact
+                        same "meaning as numbers" trick we used on the documents. Now the question and the documents
+                        speak the same language.</p>
+
+                    <h2 class="story-h">4 · Finding the right information</h2>
+                    <p>The back end hands that question-vector to <b>OpenSearch</b> and says "find me the chunks whose
+                        meaning is closest to this." OpenSearch compares and returns the top few most relevant chunks —
+                        for our example, the row in the employee directory about Yaswanth Reddy and his manager.</p>
+                    <p>We also mix in a plain keyword search and blend the two results together (this is called
+                        "hybrid" search). That way we catch both the <i>meaning</i> matches and the <i>exact word</i>
+                        matches, which gives better answers.</p>
+
+                    <h2 class="story-h">5 · Writing the answer</h2>
+                    <p>Now the back end builds a little note for the AI that basically says: <i>"Here are the relevant
+                            chunks, and here is the user's question. Answer using only these chunks."</i> It sends that
+                        to
+                        the <b>LLM</b> (the large language model, also on Bedrock). The LLM reads the chunks and writes
+                        a clean, human answer — and because we told it to stick to the provided text, it stays honest
+                        and even cites the source.</p>
+                    <p>The answer travels back through the same path to the browser, and the user sees:
+                        <i>"Yaswanth Reddy reports to Marcus Vance,"</i> with a little citation showing it came from the
+                        employee directory. Done — in a couple of seconds.
+                    </p>
+
+                    <h2 class="story-h">6 · How it all got there (deployment)</h2>
+                    <p>None of this is clicked together by hand. We describe the entire cloud setup as code using
+                        <b>Terraform</b> — the network, the database, the containers, the permissions, everything. When
+                        we run the deploy pipeline on <b>GitHub Actions</b>, it logs into AWS securely (no passwords
+                        stored — it uses a trusted handshake called OIDC), builds our app into two <b>Docker images</b>,
+                        pushes them to <b>ECR</b> (a registry for images), and tells Terraform to build the whole stack.
+                        One click and the entire platform comes to life. Another click tears it all down.
+                    </p>
+
+                    <h2 class="story-h">7 · A note on safety and cost</h2>
+                    <p>Our API is protected by a secret key (stored safely in <b>Secrets Manager</b>, generated
+                        automatically — we never type it). The AI models on Bedrock aren't "created" by us; they already
+                        exist in AWS and we're simply given permission to call them. And the little programs like Lambda
+                        only run when there's work to do, so we're not paying for idle servers.</p>
+
+                    <h2 class="story-h">In one sentence</h2>
+                    <p class="story-final">We turn documents into searchable "meaning," find the pieces that match a
+                        user's question, and let an AI write a trustworthy answer from exactly those pieces — all
+                        running
+                        on AWS, deployed with one click.</p>
                 </div>
             </section>
 
@@ -2198,6 +2302,30 @@
                                 <li>Attach <b>AdministratorAccess</b> → name it <code>github-rag-deploy</code> → copy
                                     its ARN</li>
                             </ul>
+                            <p class="st-note">Then verify the <b>Trust policy</b> (Role → Trust relationships → Edit
+                                trust policy). Replace <code>ACCOUNT_ID</code>, <code>GITHUB_ORG</code>,
+                                <code>REPO</code> — the <code>sub</code> line locks the role to <b>your</b> repo:
+                            </p>
+                            <pre class="st-code">{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Federated": "arn:aws:iam::ACCOUNT_ID:oidc-provider/token.actions.githubusercontent.com"
+      },
+      "Action": "sts:AssumeRoleWithWebIdentity",
+      "Condition": {
+        "StringEquals": {
+          "token.actions.githubusercontent.com:aud": "sts.amazonaws.com"
+        },
+        "StringLike": {
+          "token.actions.githubusercontent.com:sub": "repo:GITHUB_ORG/REPO:*"
+        }
+      }
+    }
+  ]
+}</pre>
                         </div>
                     </div>
 
