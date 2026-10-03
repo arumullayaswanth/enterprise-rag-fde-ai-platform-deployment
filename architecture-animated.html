@@ -677,6 +677,189 @@
             color: var(--violet-2);
         }
 
+        /* ===== deploy flow ===== */
+        .dep-phase {
+            margin: 1.8rem 0 .9rem;
+            font-size: 1.05rem;
+            font-weight: 800;
+            letter-spacing: -.01em;
+        }
+
+        .dep-phase.ci {
+            color: var(--cyan);
+        }
+
+        .dep-phase.tf {
+            color: var(--violet-2);
+        }
+
+        .dep-phase.run {
+            color: var(--green);
+        }
+
+        .dep-row {
+            display: flex;
+            align-items: center;
+            gap: .6rem;
+            flex-wrap: wrap;
+        }
+
+        .dep-node {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            text-align: center;
+            width: 120px;
+        }
+
+        .dep-tile {
+            width: 60px;
+            height: 60px;
+            border-radius: 14px;
+            display: grid;
+            place-items: center;
+            padding: 8px;
+            background: #fff;
+            border: 1px solid var(--line);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, .4);
+        }
+
+        .dep-tile img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .dep-tile.gh {
+            background: #161b22;
+        }
+
+        .dep-tile.key {
+            background: #06202b;
+            border-color: rgba(34, 211, 238, .4);
+        }
+
+        .dep-tile.gh svg,
+        .dep-tile.key svg {
+            width: 34px;
+            height: 34px;
+        }
+
+        .dep-label {
+            font-size: .8rem;
+            font-weight: 700;
+        }
+
+        .dep-sub {
+            font-size: .68rem;
+            color: var(--ink-faint);
+        }
+
+        .dep-arr {
+            color: var(--violet-2);
+            font-size: 1.4rem;
+            font-weight: 700;
+            position: relative;
+        }
+
+        .dep-arr::after {
+            content: attr(data-step);
+            position: absolute;
+            top: -14px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: var(--mono);
+            font-size: .64rem;
+            color: var(--ink-faint);
+        }
+
+        .dep-connect {
+            text-align: center;
+            color: var(--ink-faint);
+            font-family: var(--mono);
+            font-size: .82rem;
+            margin: 1rem 0;
+        }
+
+        .dep-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: .9rem;
+        }
+
+        @media (max-width:760px) {
+            .dep-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .dep-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            text-align: center;
+            background: var(--glass);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 1rem .6rem;
+        }
+
+        .dep-steps {
+            display: flex;
+            flex-direction: column;
+            gap: .5rem;
+        }
+
+        .dep-step {
+            display: flex;
+            align-items: center;
+            gap: .7rem;
+            background: var(--glass);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: .7rem 1rem;
+            font-size: .9rem;
+        }
+
+        .dep-step b {
+            color: var(--ink);
+        }
+
+        .dep-cta {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+            margin-top: 1.2rem;
+            font-size: .88rem;
+            color: var(--ink-soft);
+        }
+
+        .dep-cta-item {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+        }
+
+        .dep-pill {
+            font-family: var(--mono);
+            font-size: .74rem;
+            font-weight: 700;
+            padding: .22rem .6rem;
+            border-radius: 7px;
+        }
+
+        .dep-pill.apply {
+            background: rgba(52, 211, 153, .16);
+            color: var(--green);
+        }
+
+        .dep-pill.destroy {
+            background: rgba(251, 113, 133, .16);
+            color: #fb7185;
+        }
+
         footer {
             text-align: center;
             color: var(--ink-faint);
@@ -732,6 +915,15 @@
                         <path d="M14 2v6h6M9 13h6M9 17h4" />
                     </svg>
                     Example
+                </button>
+                <button class="tab" data-view="deploy">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M12 2v6M12 8l3-3M12 8L9 5" />
+                        <path d="M4 14h4l2 3h4l2-3h4" />
+                        <path d="M4 14v6h16v-6" />
+                    </svg>
+                    Deploy
                 </button>
             </div>
         </div>
@@ -1087,6 +1279,137 @@
 
             <div class="why-note">In one line: <b>Embedding</b> = turn meaning into numbers · <b>OpenSearch</b> = store
                 the numbers and find the closest ones · <b>LLM</b> = write the answer from what OpenSearch returned.
+            </div>
+        </section>
+
+        <!-- ===================== DEPLOY (CI/CD + infra) ===================== -->
+        <section class="view" id="deploy">
+            <h1>Deployment <span>Flow</span> — one click to live</h1>
+            <p class="lead">Run the <b>fde-rag-deployment</b> workflow with <b>apply</b>. GitHub Actions assumes an AWS
+                role via OIDC, builds the two images, pushes them to ECR, and Terraform provisions the whole stack.
+                When it finishes you open the load balancer URL and test the UI.</p>
+
+            <!-- Phase A: CI -->
+            <h2 class="dep-phase ci">① CI — build &amp; push images</h2>
+            <div class="dep-row">
+                <div class="dep-node">
+                    <div class="dep-tile gh">
+                        <svg viewBox="0 0 24 24" fill="#fff">
+                            <path
+                                d="M12 2A10 10 0 0 0 8.8 21.5c.5.1.7-.2.7-.5v-1.7c-2.8.6-3.4-1.3-3.4-1.3-.5-1.2-1.1-1.5-1.1-1.5-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.5 2.3 1.1 2.9.8.1-.6.3-1.1.6-1.3-2.2-.300-4.6-1.1-4.6-4.9 0-1.1.4-2 1-2.7-.1-.3-.4-1.3.1-2.7 0 0 .8-.3 2.7 1a9.4 9.4 0 0 1 5 0c1.9-1.3 2.7-1 2.7-1 .5 1.4.2 2.4.1 2.7.6.7 1 1.6 1 2.7 0 3.8-2.3 4.6-4.6 4.9.4.3.7.9.7 1.9v2.8c0 .3.2.6.7.5A10 10 0 0 0 12 2z" />
+                        </svg>
+                    </div>
+                    <div class="dep-label">GitHub Actions</div>
+                    <div class="dep-sub">manual run: apply</div>
+                </div>
+                <span class="dep-arr" data-step="1">→</span>
+                <div class="dep-node">
+                    <div class="dep-tile key">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round">
+                            <path
+                                d="M21 2l-2 2m-7.6 7.6a5.5 5.5 0 1 1-7.8 7.8 5.5 5.5 0 0 1 7.8-7.8zM15.5 7.5l3 3L22 7l-3-3" />
+                        </svg>
+                    </div>
+                    <div class="dep-label">AWS OIDC</div>
+                    <div class="dep-sub">assume role, no keys</div>
+                </div>
+                <span class="dep-arr" data-step="2">→</span>
+                <div class="dep-node">
+                    <div class="dep-tile w"><img
+                            src="https://awsfundamentals.com/assets/aws-icons/Arch_Amazon-Elastic-Container-Registry_64.svg"
+                            alt="ECR"></div>
+                    <div class="dep-label">ECR</div>
+                    <div class="dep-sub">api + ingest images</div>
+                </div>
+            </div>
+
+            <div class="dep-connect">↓ Terraform apply</div>
+
+            <!-- Phase B: Terraform provisions -->
+            <h2 class="dep-phase tf">② Terraform — provision the stack</h2>
+            <div class="dep-grid">
+                <div class="dep-card">
+                    <div class="dep-tile w"><img
+                            src="https://awsfundamentals.com/assets/aws-icons/Arch_Amazon-Virtual-Private-Cloud_64.svg"
+                            alt="VPC"></div>
+                    <div class="dep-label">VPC + subnets</div>
+                    <div class="dep-sub">network, NAT, SGs</div>
+                </div>
+                <div class="dep-card">
+                    <div class="dep-tile w"><img
+                            src="https://awsfundamentals.com/assets/aws-icons/Arch_Elastic-Load-Balancing_64.svg"
+                            alt="ALB"></div>
+                    <div class="dep-label">ALB</div>
+                    <div class="dep-sub">public entry point</div>
+                </div>
+                <div class="dep-card">
+                    <div class="dep-tile w"><img
+                            src="https://awsfundamentals.com/assets/aws-icons/Arch_Amazon-Elastic-Container-Service_64.svg"
+                            alt="ECS"></div>
+                    <div class="dep-label">ECS Fargate</div>
+                    <div class="dep-sub">runs the API + UI</div>
+                </div>
+                <div class="dep-card">
+                    <div class="dep-tile w"><img
+                            src="https://awsfundamentals.com/assets/aws-icons/Arch_AWS-Lambda_64.svg" alt="Lambda">
+                    </div>
+                    <div class="dep-label">Lambda</div>
+                    <div class="dep-sub">ingest worker</div>
+                </div>
+                <div class="dep-card">
+                    <div class="dep-tile w"><img
+                            src="https://awsfundamentals.com/assets/aws-icons/Arch_Amazon-OpenSearch-Service_64.svg"
+                            alt="OpenSearch"></div>
+                    <div class="dep-label">OpenSearch</div>
+                    <div class="dep-sub">vector index</div>
+                </div>
+                <div class="dep-card">
+                    <div class="dep-tile w"><img
+                            src="https://awsfundamentals.com/assets/aws-icons/Arch_Amazon-Simple-Storage-Service_64.svg"
+                            alt="S3"></div>
+                    <div class="dep-label">S3</div>
+                    <div class="dep-sub">documents bucket</div>
+                </div>
+                <div class="dep-card">
+                    <div class="dep-tile w"><img
+                            src="https://awsfundamentals.com/assets/aws-icons/Arch_AWS-Secrets-Manager_64.svg"
+                            alt="Secrets Manager"></div>
+                    <div class="dep-label">Secrets Mgr</div>
+                    <div class="dep-sub">API key</div>
+                </div>
+                <div class="dep-card">
+                    <div class="dep-tile w"><img
+                            src="https://awsfundamentals.com/assets/aws-icons/Arch_Amazon-Bedrock_64.svg" alt="Bedrock">
+                    </div>
+                    <div class="dep-label">Bedrock</div>
+                    <div class="dep-sub">embed + LLM</div>
+                </div>
+            </div>
+
+            <div class="dep-connect">↓ load data &amp; index</div>
+
+            <!-- Phase C: data + access -->
+            <h2 class="dep-phase run">③ Ingest &amp; access</h2>
+            <div class="dep-steps">
+                <div class="dep-step"><span class="ex-num">A</span>
+                    <div>Sample docs sync to <b>S3</b> → Lambda embeds them → stored in <b>OpenSearch</b>.</div>
+                </div>
+                <div class="dep-step"><span class="ex-num">B</span>
+                    <div>Pipeline waits for <b>ECS</b> to become healthy behind the <b>ALB</b>.</div>
+                </div>
+                <div class="dep-step"><span class="ex-num">C</span>
+                    <div>The run prints the <b>Web URL</b> → open it, you see the Yash Academy UI.</div>
+                </div>
+                <div class="dep-step"><span class="ex-num">D</span>
+                    <div>Ask a question on the <b>Ask</b> tab → grounded, cited answer. ✅ Tested end to end.</div>
+                </div>
+            </div>
+
+            <div class="dep-cta">
+                <div class="dep-cta-item"><span class="dep-pill apply">apply</span> deploys everything above</div>
+                <div class="dep-cta-item"><span class="dep-pill destroy">destroy</span> empties the bucket &amp; tears
+                    it all down</div>
             </div>
         </section>
     </main>
