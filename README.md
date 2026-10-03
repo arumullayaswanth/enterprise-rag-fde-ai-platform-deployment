@@ -108,3 +108,32 @@ then the ECS service and Lambda run them.
 
 **Provider URL**: `https://token.actions.githubusercontent.com`
 **Audience**: `sts.amazonaws.com`
+```
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Federated": "arn:aws:iam::ACCOUNT_ID:oidc-provider/token.actions.githubusercontent.com"
+      },
+      "Action": "sts:AssumeRoleWithWebIdentity",
+      "Condition": {
+        "StringEquals": {
+          "token.actions.githubusercontent.com:aud": "sts.amazonaws.com"
+        },
+        "StringLike": {
+          "token.actions.githubusercontent.com:sub": "repo:GITHUB_ORG/REPO:*"
+        }
+      }
+    }
+  ]
+}
+```
+
+
+| Name | Value |
+|------|-------|
+| `AWS_REGION` | your region, e.g. `us-east-1` |
+| `AWS_OIDC_ROLE_ARN` | the role ARN from Step 2 |
+| `TF_STATE_BUCKET` | the bucket name from Step 1 |

@@ -860,6 +860,232 @@
             color: #fb7185;
         }
 
+        /* ===== shared numbered badge ===== */
+        .hl-num {
+            display: inline-grid;
+            place-items: center;
+            width: 20px;
+            height: 20px;
+            border-radius: 6px;
+            font-family: var(--mono);
+            font-size: .66rem;
+            font-weight: 700;
+            color: #fff;
+            background: linear-gradient(135deg, var(--violet), #6366f1);
+        }
+
+        /* ===== high-level ===== */
+        .hl {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: .5rem;
+        }
+
+        .hl-node {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            text-align: center;
+            background: var(--glass);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: .8rem 1.1rem;
+            min-width: 150px;
+        }
+
+        .hl-node.n-user {
+            border-color: rgba(34, 211, 238, .4);
+        }
+
+        .hl-ic {
+            width: 46px;
+            height: 46px;
+            border-radius: 11px;
+            display: grid;
+            place-items: center;
+            background: #fff;
+            padding: 6px;
+            font-size: 1.4rem;
+        }
+
+        .hl-ic img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .hl-t {
+            font-size: .82rem;
+            font-weight: 700;
+        }
+
+        .hl-t small {
+            color: var(--ink-faint);
+            font-weight: 500;
+        }
+
+        .hl-c {
+            display: flex;
+            align-items: center;
+            gap: .4rem;
+            font-size: .78rem;
+            color: var(--ink-soft);
+        }
+
+        .hl-c::before {
+            content: "↓";
+            color: var(--violet-2);
+            font-weight: 700;
+        }
+
+        .hl-branch {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .hl-leg {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: .5rem;
+        }
+
+        .hl-divider {
+            margin: 1.2rem 0 .4rem;
+            font-size: .72rem;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            color: var(--pink);
+            font-weight: 700;
+        }
+
+        /* ===== code flow ===== */
+        .cf {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 1rem;
+            align-items: start;
+        }
+
+        @media (max-width:760px) {
+            .cf {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .cf-col {
+            display: flex;
+            flex-direction: column;
+            gap: .5rem;
+        }
+
+        .cf-head {
+            font-weight: 800;
+            font-size: .9rem;
+            padding: .5rem .8rem;
+            border-radius: 10px;
+        }
+
+        .cf-head.fe {
+            background: rgba(34, 211, 238, .14);
+            color: var(--cyan);
+        }
+
+        .cf-head.be {
+            background: rgba(139, 92, 246, .16);
+            color: var(--violet-2);
+        }
+
+        .cf-box {
+            background: var(--glass);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: .6rem .8rem;
+            font-size: .82rem;
+            color: var(--ink-soft);
+        }
+
+        .cf-box b {
+            color: var(--ink);
+        }
+
+        .cf-mid {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 1.5rem;
+            padding-top: 2.5rem;
+        }
+
+        .cf-step {
+            font-size: .74rem;
+            color: var(--ink-soft);
+            display: flex;
+            align-items: center;
+            gap: .4rem;
+            white-space: nowrap;
+        }
+
+        .cf-step::after {
+            content: "→";
+            color: var(--violet-2);
+            font-weight: 700;
+        }
+
+        .cf-step.down::after {
+            content: "←";
+        }
+
+        /* ===== trace ===== */
+        .tr {
+            display: flex;
+            flex-direction: column;
+            gap: .5rem;
+        }
+
+        .tr-step {
+            display: flex;
+            align-items: center;
+            gap: .8rem;
+            background: var(--glass);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: .7rem 1rem;
+            font-size: .9rem;
+            color: var(--ink-soft);
+        }
+
+        .tr-step b {
+            color: var(--ink);
+        }
+
+        .tr-step.answer {
+            border-color: rgba(52, 211, 153, .35);
+            background: rgba(52, 211, 153, .08);
+        }
+
+        .tr-n {
+            width: 28px;
+            height: 28px;
+            flex: 0 0 auto;
+            border-radius: 8px;
+            display: grid;
+            place-items: center;
+            font-family: var(--mono);
+            font-weight: 700;
+            font-size: .8rem;
+            color: #fff;
+            background: linear-gradient(135deg, var(--violet), #6366f1);
+        }
+
+        .tr-ingest {
+            margin-top: 1.6rem;
+        }
+
         footer {
             text-align: center;
             color: var(--ink-faint);
@@ -924,6 +1150,31 @@
                         <path d="M4 14v6h16v-6" />
                     </svg>
                     Deploy
+                </button>
+                <button class="tab" data-view="highlevel">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="5" cy="6" r="2" />
+                        <circle cx="19" cy="6" r="2" />
+                        <circle cx="12" cy="18" r="2" />
+                        <path d="M7 6h10M6 8l5 8M18 8l-5 8" />
+                    </svg>
+                    High-Level
+                </button>
+                <button class="tab" data-view="codeflow">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M8 6l-4 6 4 6M16 6l4 6-4 6" />
+                    </svg>
+                    Code Flow
+                </button>
+                <button class="tab" data-view="trace">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="7" />
+                        <path d="M21 21l-4.3-4.3" />
+                    </svg>
+                    Trace
                 </button>
             </div>
         </div>
@@ -1410,6 +1661,198 @@
                 <div class="dep-cta-item"><span class="dep-pill apply">apply</span> deploys everything above</div>
                 <div class="dep-cta-item"><span class="dep-pill destroy">destroy</span> empties the bucket &amp; tears
                     it all down</div>
+            </div>
+        </section>
+
+        <!-- ===================== HIGH-LEVEL ARCHITECTURE ===================== -->
+        <section class="view" id="highlevel">
+            <h1>High-Level <span>Architecture</span> — numbered connections</h1>
+            <p class="lead">Every box is one service. Each arrow is numbered — follow 1 → 9 to see how one tool hands
+                off to the next.</p>
+
+            <div class="hl">
+                <div class="hl-node n-user">
+                    <div class="hl-ic">👤</div>
+                    <div class="hl-t">User (Browser)</div>
+                </div>
+                <div class="hl-c"><span class="hl-num">1</span> opens / asks</div>
+
+                <div class="hl-node">
+                    <div class="hl-ic"><img
+                            src="https://awsfundamentals.com/assets/aws-icons/Arch_Elastic-Load-Balancing_64.svg"
+                            alt="ALB"></div>
+                    <div class="hl-t">ALB (public)</div>
+                </div>
+                <div class="hl-c"><span class="hl-num">2</span> forwards HTTP</div>
+
+                <div class="hl-node">
+                    <div class="hl-ic"><img
+                            src="https://awsfundamentals.com/assets/aws-icons/Arch_Amazon-Elastic-Container-Service_64.svg"
+                            alt="ECS"></div>
+                    <div class="hl-t">ECS Fargate<br><small>React UI + FastAPI</small></div>
+                </div>
+
+                <div class="hl-branch">
+                    <div class="hl-leg">
+                        <div class="hl-c"><span class="hl-num">3</span> embed text</div>
+                        <div class="hl-node">
+                            <div class="hl-ic"><img
+                                    src="https://awsfundamentals.com/assets/aws-icons/Arch_Amazon-Bedrock_64.svg"
+                                    alt="Bedrock"></div>
+                            <div class="hl-t">Bedrock<br><small>Titan + LLM</small></div>
+                        </div>
+                    </div>
+                    <div class="hl-leg">
+                        <div class="hl-c"><span class="hl-num">4</span> vector search</div>
+                        <div class="hl-node">
+                            <div class="hl-ic"><img
+                                    src="https://awsfundamentals.com/assets/aws-icons/Arch_Amazon-OpenSearch-Service_64.svg"
+                                    alt="OpenSearch"></div>
+                            <div class="hl-t">OpenSearch</div>
+                        </div>
+                    </div>
+                    <div class="hl-leg">
+                        <div class="hl-c"><span class="hl-num">5</span> read secret</div>
+                        <div class="hl-node">
+                            <div class="hl-ic"><img
+                                    src="https://awsfundamentals.com/assets/aws-icons/Arch_AWS-Secrets-Manager_64.svg"
+                                    alt="Secrets"></div>
+                            <div class="hl-t">Secrets Mgr</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="hl-divider">Ingestion side</div>
+
+                <div class="hl-node n-user">
+                    <div class="hl-ic">📄</div>
+                    <div class="hl-t">Admin uploads docs</div>
+                </div>
+                <div class="hl-c"><span class="hl-num">6</span> put object</div>
+                <div class="hl-node">
+                    <div class="hl-ic"><img
+                            src="https://awsfundamentals.com/assets/aws-icons/Arch_Amazon-Simple-Storage-Service_64.svg"
+                            alt="S3"></div>
+                    <div class="hl-t">S3 bucket</div>
+                </div>
+                <div class="hl-c"><span class="hl-num">7</span> triggers</div>
+                <div class="hl-node">
+                    <div class="hl-ic"><img src="https://awsfundamentals.com/assets/aws-icons/Arch_AWS-Lambda_64.svg"
+                            alt="Lambda"></div>
+                    <div class="hl-t">Lambda (ingest)</div>
+                </div>
+                <div class="hl-c"><span class="hl-num">8</span> embed</div>
+                <div class="hl-node">
+                    <div class="hl-ic"><img
+                            src="https://awsfundamentals.com/assets/aws-icons/Arch_Amazon-Bedrock_64.svg" alt="Bedrock">
+                    </div>
+                    <div class="hl-t">Bedrock Titan</div>
+                </div>
+                <div class="hl-c"><span class="hl-num">9</span> index text+vector</div>
+                <div class="hl-node">
+                    <div class="hl-ic"><img
+                            src="https://awsfundamentals.com/assets/aws-icons/Arch_Amazon-OpenSearch-Service_64.svg"
+                            alt="OpenSearch"></div>
+                    <div class="hl-t">OpenSearch</div>
+                </div>
+            </div>
+            <p class="lead" style="margin-top:1.2rem"><b>Query side</b> = 1→5 (ask → answer). <b>Ingestion side</b> =
+                6→9 (upload → searchable). Both meet at OpenSearch.</p>
+        </section>
+
+        <!-- ===================== CODE FLOW (frontend <-> backend) ===================== -->
+        <section class="view" id="codeflow">
+            <h1>Code Flow <span>— frontend ↔ backend</span></h1>
+            <p class="lead">What the code actually does. The React app never talks to AWS directly — it calls the
+                FastAPI backend, which does the AWS work. Follow 1 → 7.</p>
+
+            <div class="cf">
+                <div class="cf-col">
+                    <div class="cf-head fe">Frontend · React (Vite + TS)</div>
+                    <div class="cf-box"><code>Ask.tsx</code><br>user types a question, clicks Send</div>
+                    <div class="cf-box"><code>api/client.ts</code><br><b>POST /api/query</b> with <code>x-api-key</code>
+                    </div>
+                    <div class="cf-box last"><code>markdown.ts</code><br>renders the answer + citations</div>
+                </div>
+
+                <div class="cf-mid">
+                    <div class="cf-step"><span class="hl-num">1</span> POST /query</div>
+                    <div class="cf-step down"><span class="hl-num">7</span> JSON answer</div>
+                </div>
+
+                <div class="cf-col">
+                    <div class="cf-head be">Backend · FastAPI (Python)</div>
+                    <div class="cf-box"><code>main.py</code> <span class="hl-num">2</span><br>checks API key, validates
+                        request</div>
+                    <div class="cf-box"><code>retrieval/search.py</code> <span class="hl-num">3</span><br>embed question
+                        → <b>hybrid search</b> in OpenSearch</div>
+                    <div class="cf-box"><code>retrieval/rag.py</code> <span class="hl-num">4</span><br>build prompt from
+                        top-K chunks</div>
+                    <div class="cf-box"><span class="hl-num">5</span> call <b>Bedrock LLM</b> (Converse API)</div>
+                    <div class="cf-box last"><span class="hl-num">6</span> return answer + citations JSON</div>
+                </div>
+            </div>
+            <p class="lead" style="margin-top:1.2rem">The same backend also serves the built React files, so one ECS
+                container is both the API and the website. <code>/stats</code> powers the dashboards;
+                <code>/ingest</code>
+                and the Lambda share the <code>ingestion/</code> code.
+            </p>
+        </section>
+
+        <!-- ===================== TRACE (one message end to end) ===================== -->
+        <section class="view" id="trace">
+            <h1>Trace <span>— one message, end to end</span></h1>
+            <p class="lead">Example: a user types <b>"Who does Yaswanth Reddy report to?"</b>. Here is every hop that
+                message takes.</p>
+
+            <div class="tr">
+                <div class="tr-step"><span class="tr-n">1</span>
+                    <div><b>Browser</b> — React <code>Ask.tsx</code> sends <code>POST /api/query</code> with the
+                        question</div>
+                </div>
+                <div class="tr-step"><span class="tr-n">2</span>
+                    <div><b>ALB</b> — routes the request to a healthy ECS task</div>
+                </div>
+                <div class="tr-step"><span class="tr-n">3</span>
+                    <div><b>FastAPI</b> — verifies <code>x-api-key</code>, then calls the retrieval layer</div>
+                </div>
+                <div class="tr-step"><span class="tr-n">4</span>
+                    <div><b>Bedrock Titan</b> — turns the question into a <code>[0.11, 0.22, …]</code> query vector
+                    </div>
+                </div>
+                <div class="tr-step"><span class="tr-n">5</span>
+                    <div><b>OpenSearch</b> — k-NN + keyword search returns the top chunks, e.g. the directory row for
+                        <i>Yaswanth Reddy</i>
+                    </div>
+                </div>
+                <div class="tr-step"><span class="tr-n">6</span>
+                    <div><b>FastAPI (rag.py)</b> — builds a prompt: the retrieved chunks + the question</div>
+                </div>
+                <div class="tr-step"><span class="tr-n">7</span>
+                    <div><b>Bedrock LLM</b> — reads the context and writes the answer</div>
+                </div>
+                <div class="tr-step answer"><span class="tr-n">8</span>
+                    <div><b>Back to the browser</b> — "Yaswanth Reddy reports to <b>Marcus Vance</b>." with a citation
+                        to the employee directory ✅</div>
+                </div>
+            </div>
+
+            <div class="tr-ingest">
+                <h2 class="dep-phase run">And if you upload a new document?</h2>
+                <div class="tr-step"><span class="tr-n">A</span>
+                    <div>You drop <code>new-policy.pdf</code> into the <b>S3</b> bucket under <code>uploads/</code>
+                    </div>
+                </div>
+                <div class="tr-step"><span class="tr-n">B</span>
+                    <div><b>S3 event</b> fires → invokes the <b>Lambda</b> ingest function</div>
+                </div>
+                <div class="tr-step"><span class="tr-n">C</span>
+                    <div><b>Lambda</b> loads → chunks → <b>Bedrock Titan</b> embeds each chunk</div>
+                </div>
+                <div class="tr-step"><span class="tr-n">D</span>
+                    <div>Chunks + vectors are written to <b>OpenSearch</b> — now the new doc is searchable, no redeploy
+                        needed</div>
+                </div>
             </div>
         </section>
     </main>
