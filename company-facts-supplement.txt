@@ -1,0 +1,81 @@
+COMPANY FACTS SUPPLEMENT
+Yash Academy Corp — Internal Reference Sheet
+Last updated: Q3 2026
+
+This document fills in facts that are not in the structured HR tables:
+compensation, hire dates, contact numbers, additional departments, office
+locations, and company-wide figures. Ask the assistant about any of these and
+it will answer from this sheet.
+
+========================================================================
+1. COMPENSATION (ANNUAL BASE SALARY, USD)
+========================================================================
+- Yaswanth Reddy (Lead DevOps Engineer, L6): $182,000 base + 12% annual bonus.
+- Marcus Vance (Director of Engineering, L8): $245,000 base + 20% bonus.
+- Elena Rossi (Engineering Manager, L7): $205,000 base + 15% bonus.
+- Daniel Okafor (Software Engineer II, L4): $138,000 base + 8% bonus.
+- Helena Brooks (CEO, L11): $620,000 base + 80% target bonus + equity.
+- Priya Nair (SVP Engineering & Product, L10): $410,000 base + 45% bonus.
+- Carlos Mendoza (Account Executive, L4): $96,000 base + uncapped commission.
+- Yuki Tanaka (QA Engineer, Contractor, L3): $85/hour contract rate.
+Salary bands by level: L3 $70k-95k, L4 $110k-150k, L5 $140k-180k,
+L6 $170k-215k, L7 $195k-250k, L8 $235k-300k, L9 $300k-380k,
+L10 $380k-480k, L11 $550k+.
+
+========================================================================
+2. HIRE DATES / TENURE
+========================================================================
+- Yaswanth Reddy: joined 2021-03-15 (started as SRE, promoted to Lead 2023).
+- Marcus Vance: joined 2018-07-01.
+- Helena Brooks: founded the company, CEO since 2016-01-01.
+- Carlos Mendoza: joined 2022-09-12.
+- Grace Kim: joined 2020-11-02, currently on parental leave until 2026-12-01.
+- Yuki Tanaka: contract started 2025-06-01, runs through 2026-12-31.
+
+========================================================================
+3. CONTACT NUMBERS (INTERNAL EXTENSIONS)
+========================================================================
+- Yaswanth Reddy: +1-415-555-0142, ext. 4201.
+- Helena Brooks (CEO office): +1-415-555-0100, ext. 1000.
+- IT Help Desk: +1-415-555-0199, ext. 4357 (HELP).
+- Security Operations Center (24/7): +1-415-555-0177.
+
+========================================================================
+4. DEPARTMENTS NOT IN THE DIRECTORY TABLE
+========================================================================
+- Marketing: led by Dana Whitmore (VP of Marketing, L9). Team of 14.
+  Cost center MKT-250, annual budget $2,900,000.
+  Members: Dana Whitmore, Ryan Costa, Priyanka Shah, Leo Martin.
+- Finance: led by Victor Osei (Chief Financial Officer, L10).
+  Cost center FIN-050, annual budget $2,100,000. Team of 11.
+  The CFO is Victor Osei; he reports directly to the CEO, Helena Brooks.
+- Legal: led by Angela Ford (General Counsel, L9). Team of 6.
+
+========================================================================
+5. OFFICE LOCATIONS (INCLUDING INTERNATIONAL)
+========================================================================
+- San Francisco, CA — headquarters.
+- Austin, TX — Payments Platform hub.
+- New York, NY — Product and Sales East.
+- London, UK — EMEA office, opened 2024. Site lead: Oliver Grant (visiting).
+  12 staff, mostly Sales and Support.
+- Bangalore, India — Engineering satellite, opened 2025. 28 staff.
+
+========================================================================
+6. COMPANY-WIDE FIGURES
+========================================================================
+- Total company headcount: 326 employees (plus 18 contractors).
+- Total annual revenue (FY2026): $214,000,000.
+- Total operating budget across all cost centers: $54,100,000.
+- Fiscal year runs February 1 to January 31.
+- Q1 2026 total sales: $9,200,000. Q2 2026: $10,800,000.
+  Q3 2026: $12,400,000 (current quarter).
+
+========================================================================
+7. LEAVE / PTO POLICY
+========================================================================
+- Full-time employees accrue 20 paid vacation days per year, plus 10 holidays.
+- Maya Patel has 8 vacation days remaining for 2026.
+- Yaswanth Reddy has 11 vacation days remaining for 2026.
+- Sick leave: 10 days per year, separate from vacation.
+- Parental leave: 16 weeks fully paid.
