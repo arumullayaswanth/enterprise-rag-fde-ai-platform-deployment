@@ -38,6 +38,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from app.ingestion.chunker import chunk_documents
+from app.ingestion.embeddings import ThrottledOut
 from app.ingestion.indexer import OPENSEARCH_INDEX, get_client, index_chunks
 from app.ingestion.loader import load
 from app.retrieval.rag import answer_question
@@ -248,20 +249,23 @@ _THROTTLE_CODES = {"ThrottlingException", "TooManyRequestsException", "ServiceUn
 @api.post("/query", response_model=QueryResponse, dependencies=[Depends(require_api_key)])
 def query(req: QueryRequest) -> QueryResponse:
     search_fn = hybrid_search if req.mode == "hybrid" else vector_search
+    quota_detail = (
+        "Bedrock model quota not available yet. On-demand inference for Titan "
+        "Text Embeddings V2 / Nova Lite is throttled or held at 0 on this "
+        "account. Lift it in the Service Quotas console, or open an AWS Support "
+        "case if the quota is marked non-adjustable, then try again."
+    )
     try:
         result = answer_question(req.question, k=req.k, search_fn=search_fn)
+    except ThrottledOut as exc:
+        # The question itself could not be embedded (Titan throttled / quota 0).
+        logger.warning("query embedding throttled by Bedrock")
+        raise HTTPException(status_code=429, detail=quota_detail) from exc
     except ClientError as exc:
         code = exc.response.get("Error", {}).get("Code", "")
         if code in _THROTTLE_CODES:
             logger.warning("query throttled by Bedrock: %s", code)
-            raise HTTPException(
-                status_code=429,
-                detail=(
-                    "Bedrock model quota not available yet. Request an on-demand "
-                    "quota increase for Titan Text Embeddings V2 and Nova Lite in "
-                    "the Service Quotas console, then try again."
-                ),
-            ) from exc
+            raise HTTPException(status_code=429, detail=quota_detail) from exc
         raise
     return QueryResponse(
         question=req.question,
