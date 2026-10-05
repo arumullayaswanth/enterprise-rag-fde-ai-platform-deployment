@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { askQuestion, ApiError } from "../api/client";
-import type { Citation, QueryResponse } from "../api/types";
+import type { QueryResponse } from "../api/types";
 import { renderMarkdown } from "../lib/markdown";
 
 const SUGGESTIONS = [
@@ -55,11 +55,28 @@ export function Ask() {
     const [k, setK] = useState(5);
     const [mode, setMode] = useState<"hybrid" | "vector">("hybrid");
     const [busy, setBusy] = useState(false);
+    const [progress, setProgress] = useState(0);
     const scrollRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
-    }, [messages, busy]);
+    }, [messages, busy, progress]);
+
+    // While a question is in flight, step through the three progress stages so
+    // the user sees what the RAG pipeline is doing: search -> context -> answer.
+    useEffect(() => {
+        if (!busy) {
+            setProgress(0);
+            return;
+        }
+        setProgress(0);
+        const t1 = setTimeout(() => setProgress(1), 700);
+        const t2 = setTimeout(() => setProgress(2), 1500);
+        return () => {
+            clearTimeout(t1);
+            clearTimeout(t2);
+        };
+    }, [busy]);
 
     async function send(text?: string) {
         const q = (text ?? input).trim();
@@ -124,11 +141,7 @@ export function Ask() {
                     <div className="msg bot">
                         <div className="msg-avatar">YA</div>
                         <div className="msg-bubble">
-                            <div className="typing">
-                                <span />
-                                <span />
-                                <span />
-                            </div>
+                            <ProgressSteps step={progress} />
                         </div>
                     </div>
                 )}
@@ -198,7 +211,7 @@ function MessageBubble({ msg }: { msg: Msg }) {
         <div className="msg bot">
             <div className="msg-avatar">YA</div>
             <div className="msg-bubble">
-                {msg.kind === "answer" && <AnswerContent data={msg.data} elapsed={msg.elapsed} mode={msg.mode} />}
+                {msg.kind === "answer" && <AnswerContent data={msg.data} />}
                 {msg.kind === "notfound" && <NotFound />}
                 {msg.kind === "error" && <div className="banner err">{msg.text}</div>}
             </div>
@@ -206,32 +219,29 @@ function MessageBubble({ msg }: { msg: Msg }) {
     );
 }
 
-function AnswerContent({ data, elapsed, mode }: { data: QueryResponse; elapsed: number; mode: string }) {
+const PROGRESS_STAGES = [
+    { icon: "🔍", label: "Searching knowledge base..." },
+    { icon: "✅", label: "Relevant context found." },
+    { icon: "🤖", label: "Generating answer..." },
+];
+
+function ProgressSteps({ step }: { step: number }) {
     return (
-        <>
-            <div className="answer-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(data.answer) }} />
-            {data.citations.length > 0 && (
-                <div className="sources">
-                    {data.citations.map((c: Citation) => (
-                        <div className="source-item" key={c.marker}>
-                            <span className="source-num">{c.marker}</span>
-                            <span className="source-title">{c.title}</span>
-                            <div className="relevance-track">
-                                <div className="relevance-fill" style={{ width: `${Math.min(c.score * 100, 100)}%` }} />
-                            </div>
-                            <span className="relevance-val">{c.score.toFixed(3)}</span>
-                        </div>
-                    ))}
+        <div className="progress-steps">
+            {PROGRESS_STAGES.map((s, i) => (
+                <div key={i} className={`progress-step ${i <= step ? "active" : ""} ${i === step ? "current" : ""}`}>
+                    <span className="progress-icon">{s.icon}</span>
+                    <span className="progress-label">{s.label}</span>
                 </div>
-            )}
-            <div className="meta-row">
-                <span>model: {data.model_id}</span>
-                <span>mode: {mode}</span>
-                <span>passages: {data.citations.length}</span>
-                <span>latency: {elapsed.toFixed(2)}s</span>
-            </div>
-        </>
+            ))}
+        </div>
     );
+}
+
+function AnswerContent({ data }: { data: QueryResponse }) {
+    // Show only the answer text. Sources and the model/latency footer are
+    // intentionally hidden for a clean, chat-like reading experience.
+    return <div className="answer-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(data.answer) }} />;
 }
 
 function NotFound() {
