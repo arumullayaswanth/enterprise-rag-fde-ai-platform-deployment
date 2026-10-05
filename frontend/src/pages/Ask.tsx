@@ -22,15 +22,34 @@ const CANNOT_ANSWER_PATTERNS = [
     "does not contain",
     "do not contain",
     "doesn't contain",
+    "does not include",
+    "doesn't include",
+    "does not provide",
+    "doesn't provide",
+    "does not specify",
+    "doesn't specify",
+    "does not mention",
+    "doesn't mention",
     "does not cover",
+    "is not provided",
+    "is not available",
+    "is not included",
+    "is not mentioned",
+    "is not specified",
+    "not provided in the context",
+    "not mentioned in the context",
     "cannot answer",
     "can't answer",
+    "cannot provide an answer",
     "cannot be answered",
     "not available in the provided context",
     "no information about",
+    "no information on",
     "is not in the provided context",
     "not covered in the context",
     "unable to answer",
+    "i don't have enough information",
+    "i do not have enough information",
 ];
 
 type Msg =
@@ -43,9 +62,14 @@ function isNotFound(res: QueryResponse): boolean {
     if (res.citations.length === 0) return true;
     const answer = res.answer.trim().toLowerCase();
     if (answer === NO_HITS_MESSAGE.toLowerCase()) return true;
-    // Only treat short answers as "not found" — a long answer that merely
-    // mentions one of these phrases in passing is still a real answer.
-    if (answer.length <= 400 && CANNOT_ANSWER_PATTERNS.some((p) => answer.includes(p))) return true;
+
+    // The real answer often opens with "The context does not provide X." and
+    // then adds a NOTE explaining what IS known. We only look at the first
+    // sentence / opening so a trailing NOTE does not hide the no-answer signal.
+    const firstChunk = answer.split(/\n|##|note:/i)[0];
+    const opening = firstChunk.split(/(?<=[.!?])\s/).slice(0, 2).join(" ");
+    if (CANNOT_ANSWER_PATTERNS.some((p) => opening.includes(p))) return true;
+
     return false;
 }
 
