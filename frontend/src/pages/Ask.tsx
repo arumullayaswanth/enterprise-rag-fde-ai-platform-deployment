@@ -14,6 +14,25 @@ const SUGGESTIONS = [
 
 const NO_HITS_MESSAGE = "I could not find anything relevant in the indexed documents.";
 
+// Hybrid search almost always returns the closest chunks, so citations.length
+// is rarely 0 even for off-topic questions. In those cases the model itself
+// says it cannot answer from the context. Detect that phrasing so we show the
+// friendly "no answer" image instead of a wall of irrelevant citations.
+const CANNOT_ANSWER_PATTERNS = [
+    "does not contain",
+    "do not contain",
+    "doesn't contain",
+    "does not cover",
+    "cannot answer",
+    "can't answer",
+    "cannot be answered",
+    "not available in the provided context",
+    "no information about",
+    "is not in the provided context",
+    "not covered in the context",
+    "unable to answer",
+];
+
 type Msg =
     | { role: "user"; text: string }
     | { role: "bot"; kind: "answer"; data: QueryResponse; elapsed: number; mode: string }
@@ -21,7 +40,13 @@ type Msg =
     | { role: "bot"; kind: "error"; text: string };
 
 function isNotFound(res: QueryResponse): boolean {
-    return res.citations.length === 0 || res.answer.trim() === NO_HITS_MESSAGE;
+    if (res.citations.length === 0) return true;
+    const answer = res.answer.trim().toLowerCase();
+    if (answer === NO_HITS_MESSAGE.toLowerCase()) return true;
+    // Only treat short answers as "not found" — a long answer that merely
+    // mentions one of these phrases in passing is still a real answer.
+    if (answer.length <= 400 && CANNOT_ANSWER_PATTERNS.some((p) => answer.includes(p))) return true;
+    return false;
 }
 
 export function Ask() {
