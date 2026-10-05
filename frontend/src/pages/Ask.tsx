@@ -49,8 +49,23 @@ function isNotFound(res: QueryResponse): boolean {
     return false;
 }
 
+// Chat history is kept in localStorage so a page refresh does not wipe the
+// conversation. The transient "busy/progress" indicator is never stored.
+const HISTORY_KEY = "yashacademy.chatHistory";
+
+function loadHistory(): Msg[] {
+    try {
+        const raw = localStorage.getItem(HISTORY_KEY);
+        if (!raw) return [];
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? (parsed as Msg[]) : [];
+    } catch {
+        return [];
+    }
+}
+
 export function Ask() {
-    const [messages, setMessages] = useState<Msg[]>([]);
+    const [messages, setMessages] = useState<Msg[]>(loadHistory);
     const [input, setInput] = useState("");
     const [k, setK] = useState(5);
     const [mode, setMode] = useState<"hybrid" | "vector">("hybrid");
@@ -61,6 +76,24 @@ export function Ask() {
     useEffect(() => {
         scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
     }, [messages, busy, progress]);
+
+    // Persist the conversation on every change so it survives a refresh.
+    useEffect(() => {
+        try {
+            localStorage.setItem(HISTORY_KEY, JSON.stringify(messages));
+        } catch {
+            /* storage full or unavailable; keep the in-memory chat working */
+        }
+    }, [messages]);
+
+    function newChat() {
+        setMessages([]);
+        try {
+            localStorage.removeItem(HISTORY_KEY);
+        } catch {
+            /* ignore */
+        }
+    }
 
     // While a question is in flight, step through the three progress stages so
     // the user sees what the RAG pipeline is doing: search -> context -> answer.
@@ -117,6 +150,13 @@ export function Ask() {
 
     return (
         <div className="chat">
+            {messages.length > 0 && (
+                <div className="chat-topbar">
+                    <button className="btn newchat-btn" onClick={newChat} disabled={busy}>
+                        + New chat
+                    </button>
+                </div>
+            )}
             <div className="chat-scroll" ref={scrollRef}>
                 {messages.length === 0 && (
                     <div className="chat-welcome">
