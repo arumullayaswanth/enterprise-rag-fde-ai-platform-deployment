@@ -55,7 +55,7 @@ const CANNOT_ANSWER_PATTERNS = [
 type Msg =
     | { role: "user"; text: string }
     | { role: "bot"; kind: "answer"; data: QueryResponse; elapsed: number; mode: string }
-    | { role: "bot"; kind: "notfound"; question: string }
+    | { role: "bot"; kind: "notfound"; question: string; detail?: string }
     | { role: "bot"; kind: "error"; text: string };
 
 function isNotFound(res: QueryResponse): boolean {
@@ -148,7 +148,7 @@ export function Ask() {
             setMessages((m) => [
                 ...m,
                 isNotFound(res)
-                    ? { role: "bot", kind: "notfound", question: q }
+                    ? { role: "bot", kind: "notfound", question: q, detail: res.answer }
                     : { role: "bot", kind: "answer", data: res, elapsed, mode },
             ]);
         } catch (e: unknown) {
@@ -276,7 +276,7 @@ function MessageBubble({ msg }: { msg: Msg }) {
             <div className="msg-avatar">YA</div>
             <div className="msg-bubble">
                 {msg.kind === "answer" && <AnswerContent data={msg.data} />}
-                {msg.kind === "notfound" && <NotFound />}
+                {msg.kind === "notfound" && <NotFound detail={msg.detail} />}
                 {msg.kind === "error" && <div className="banner err">{msg.text}</div>}
             </div>
         </div>
@@ -308,7 +308,7 @@ function AnswerContent({ data }: { data: QueryResponse }) {
     return <div className="answer-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(data.answer) }} />;
 }
 
-function NotFound() {
+function NotFound({ detail }: { detail?: string }) {
     return (
         <div className="not-found">
             <img
@@ -320,6 +320,12 @@ function NotFound() {
             <p className="not-found-text">
                 Sorry, I don't have enough information in my knowledge base to answer that question.
             </p>
+            {detail && detail.trim() && (
+                <div
+                    className="not-found-detail answer-body"
+                    dangerouslySetInnerHTML={{ __html: renderMarkdown(detail) }}
+                />
+            )}
         </div>
     );
 }

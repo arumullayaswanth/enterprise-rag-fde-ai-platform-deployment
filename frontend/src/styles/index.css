@@ -704,6 +704,17 @@ table.data tbody tr:hover {
   border-color: var(--line-strong);
 }
 
+/* the model's own explanation shown under the no-answer image */
+.not-found-detail {
+  margin-top: 0.9rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--border, rgba(255, 255, 255, 0.08));
+  width: 100%;
+  text-align: left;
+  font-size: 0.9rem;
+  color: var(--text-2, #9aa);
+}
+
 /* chat top bar with New chat button */
 .chat-topbar {
   display: flex;
