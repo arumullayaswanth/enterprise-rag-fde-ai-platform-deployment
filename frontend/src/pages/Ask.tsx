@@ -199,7 +199,7 @@ function MessageBubble({ msg }: { msg: Msg }) {
             <div className="msg-avatar">YA</div>
             <div className="msg-bubble">
                 {msg.kind === "answer" && <AnswerContent data={msg.data} elapsed={msg.elapsed} mode={msg.mode} />}
-                {msg.kind === "notfound" && <NotFound question={msg.question} />}
+                {msg.kind === "notfound" && <NotFound />}
                 {msg.kind === "error" && <div className="banner err">{msg.text}</div>}
             </div>
         </div>
@@ -234,19 +234,17 @@ function AnswerContent({ data, elapsed, mode }: { data: QueryResponse; elapsed: 
     );
 }
 
-function NotFound({ question }: { question: string }) {
+function NotFound() {
     return (
         <div className="not-found">
             <img
                 className="not-found-img"
                 src="/not-found.png"
-                alt="Nothing found"
+                alt="No answer found"
                 onError={(e) => ((e.currentTarget as HTMLImageElement).style.display = "none")}
             />
-            <h3 className="not-found-title">No answer in the knowledge base</h3>
             <p className="not-found-text">
-                I couldn't find anything that answers <strong>“{question}”</strong>. Try rephrasing, or ask about
-                people, teams, policies, performance, or budgets.
+                Sorry, I don't have enough information in my knowledge base to answer that question.
             </p>
         </div>
     );
